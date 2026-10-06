@@ -321,14 +321,12 @@ function ringsHTML(rings){
   if(!rings.length) return `<span class="dash">—</span>`;
   return `<div class="rings">${rings.map(r => tileHTML(r, {ring: true})).join(`<span class="plus">+</span>`)}</div>`;
 }
-function heroCardHTML(id, d, skills){
+function heroCardHTML(id, d){
   const c = char(id);
-  const mine = skills.map((k, i) => [k, i + 1]).filter(([k]) => k.hero === id);
   return `<div class="hcard">
     <div class="who">${tileHTML(id)}<span class="tyl ty-${c.type}">${c.type}</span></div>
     <div class="hbody">
       <div class="gear">
-        <div><div class="glabel">ลำดับสกิล</div>${mine.length ? `<div class="pills">${mine.map(([k, n]) => `<span class="pill ord">${n} · ${k.s === "top" ? "สกิลบน" : "สกิลล่าง"}</span>`).join("")}</div>` : `<span class="dash">—</span>`}</div>
         <div><div class="glabel">แหวน</div>${ringsHTML(d.rings)}</div>
         <div><div class="glabel">เซ็ตไอเทม</div>${pills(d.sets, "set")}</div>
       </div>
@@ -339,14 +337,14 @@ function heroCardHTML(id, d, skills){
 }
 function openCounter(id, i){
   const t = teamById(id), c = t.counters[i];
-  const withDetail = placed(c).filter(h => c.heroes[h] || c.skills.some(k => k.hero === h));
+  const withDetail = placed(c).filter(h => c.heroes[h]);
   showPanel(`<div class="panel wide" role="dialog" aria-modal="true" aria-labelledby="ph">
     <div class="panel-head"><button class="backbtn" data-open-target="${esc(id)}">‹ กลับ</button><h2 id="ph">รายละเอียดทีมสู้ · ${esc(c.formation)}</h2><button class="x" data-close aria-label="ปิด">✕</button></div>
     <p class="hint">สู้กับ ${esc(placed(t).map(h => char(h).name).join(" · "))}</p>
     ${boardHTML(c, {ally: true, withSubPet: true, skills: true})}
     ${c.note ? `<div class="advice"><b>คำแนะนำ / วิธีเล่น</b><p>${esc(c.note)}</p></div>` : ""}
     <div class="sec"><h3>ตัวละคร</h3></div>
-    ${withDetail.length ? `<div class="hcards">${withDetail.map(h => heroCardHTML(h, c.heroes[h] || blankHero(), c.skills)).join("")}</div>`
+    ${withDetail.length ? `<div class="hcards">${withDetail.map(h => heroCardHTML(h, c.heroes[h])).join("")}</div>`
       : `<p class="empty">ยังไม่มีรายละเอียดตัวละคร${state.canWrite ? " กด “แก้ไขทีมสู้” เพื่อเพิ่ม" : ""}</p>`}
     ${state.canWrite ? `<p class="err" id="formErr" hidden></p><div class="actions">
       <button class="btn danger" data-del-counter="${esc(id)}" data-i="${i}">ลบทีมสู้</button>
