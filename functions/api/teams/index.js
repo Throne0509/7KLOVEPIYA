@@ -1,4 +1,4 @@
-import { handle, json, requireAdmin, validateTeam, readBody, rowToTeam } from "../../../lib/team.js";
+import { handle, json, requireAdmin, normalizeTeam, readBody, rowToTeam } from "../../../lib/team.js";
 
 // GET /api/teams — everyone
 export const onRequestGet = handle(async ({ env }) => {
@@ -9,7 +9,7 @@ export const onRequestGet = handle(async ({ env }) => {
 // POST /api/teams — admin
 export const onRequestPost = handle(async ({ request, env }) => {
   requireAdmin(request, env);
-  const team = validateTeam(await readBody(request));
+  const team = normalizeTeam(await readBody(request));
   const id = crypto.randomUUID();
   const now = Date.now();
   await env.DB.prepare("INSERT INTO teams (id, data, created_at, updated_at) VALUES (?, ?, ?, ?)")
