@@ -7,25 +7,28 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap">
 <style>
-/* Layout: app bar, search + type chips, grid of enemy teams. Sheet views: enemy → counter teams grid → counter detail (hero cards with gear + stats); editors */
+/* Layout: app bar, search + type chips, grid of target teams. Board = formation rows of fixed slots (dashed when empty) + pet column.
+   Sheets: target → counter grid → counter detail; editors use the same board with clickable slots and a character picker. */
 :root{
-  --bg:#fbfafb; --surface:#ffffff; --ink:#1d1a1f; --muted:#7a7380; --line:#ebe6ec;
-  --rose:#e2456b; --rose-soft:#fdeef2; --rose-line:#f6cfd9;
-  --sky-soft:#eef4fd; --sky-line:#d3e2f8;
-  --tank:#8a6a2c; --tank-bg:#fbf3e3; --magic:#2f6fc9; --magic-bg:#e8f1fd; --phys:#c9382f; --phys-bg:#fdeceb; --etc:#7a4fc1; --etc-bg:#f1ebfc; --none:#7a7380; --none-bg:#f1eff2;
+  --bg:#fbfafb; --surface:#ffffff; --ink:#1d1a1f; --muted:#7a7380; --line:#ebe6ec; --dash:#e3d6dc;
+  --rose:#e2456b; --rose-soft:#fff3f6; --rose-line:#f8dbe3; --rose-rail:#f7c4d1;
+  --sky:#5b8fe0; --sky-soft:#f2f7fe; --sky-line:#dce8f9; --sky-rail:#c6dbf7;
+  --tank:#8a6a2c; --tank-bg:#fbf3e3; --magic:#2f6fc9; --magic-bg:#e8f1fd; --phys:#c9382f; --phys-bg:#fdeceb; --etc:#7a4fc1; --etc-bg:#f1ebfc; --bal:#2c8a6a; --bal-bg:#e4f5ee; --none:#7a7380; --none-bg:#f1eff2;
   --badge:#26222a; --badge-ink:#ffffff;
   --display:"Bai Jamjuree","Noto Sans Thai",system-ui,sans-serif;
   --body:"Noto Sans Thai",system-ui,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#141216; --surface:#1d1a20; --ink:#f1edf3; --muted:#a39aa8; --line:#2e2a33;
-  --rose:#ff6e8f; --rose-soft:#2c1a21; --rose-line:#4a2632; --sky-soft:#17202d; --sky-line:#26364d;
-  --tank:#e3c27f; --tank-bg:#2c2416; --magic:#7fb0f5; --magic-bg:#16233a; --phys:#f48b84; --phys-bg:#331a19; --etc:#b896f2; --etc-bg:#251c36; --none:#a39aa8; --none-bg:#26222a;
+  --bg:#141216; --surface:#1d1a20; --ink:#f1edf3; --muted:#a39aa8; --line:#2e2a33; --dash:#45343c;
+  --rose:#ff6e8f; --rose-soft:#24171c; --rose-line:#3d2530; --rose-rail:#5a2d3b;
+  --sky:#7fb0f5; --sky-soft:#151d29; --sky-line:#243246; --sky-rail:#2e4566;
+  --tank:#e3c27f; --tank-bg:#2c2416; --magic:#7fb0f5; --magic-bg:#16233a; --phys:#f48b84; --phys-bg:#331a19; --etc:#b896f2; --etc-bg:#251c36; --bal:#6fd3ad; --bal-bg:#16302a; --none:#a39aa8; --none-bg:#26222a;
   --badge:#f1edf3; --badge-ink:#141216; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#141216; --surface:#1d1a20; --ink:#f1edf3; --muted:#a39aa8; --line:#2e2a33;
-  --rose:#ff6e8f; --rose-soft:#2c1a21; --rose-line:#4a2632; --sky-soft:#17202d; --sky-line:#26364d;
-  --tank:#e3c27f; --tank-bg:#2c2416; --magic:#7fb0f5; --magic-bg:#16233a; --phys:#f48b84; --phys-bg:#331a19; --etc:#b896f2; --etc-bg:#251c36; --none:#a39aa8; --none-bg:#26222a;
+  --bg:#141216; --surface:#1d1a20; --ink:#f1edf3; --muted:#a39aa8; --line:#2e2a33; --dash:#45343c;
+  --rose:#ff6e8f; --rose-soft:#24171c; --rose-line:#3d2530; --rose-rail:#5a2d3b;
+  --sky:#7fb0f5; --sky-soft:#151d29; --sky-line:#243246; --sky-rail:#2e4566;
+  --tank:#e3c27f; --tank-bg:#2c2416; --magic:#7fb0f5; --magic-bg:#16233a; --phys:#f48b84; --phys-bg:#331a19; --etc:#b896f2; --etc-bg:#251c36; --bal:#6fd3ad; --bal-bg:#16302a; --none:#a39aa8; --none-bg:#26222a;
   --badge:#f1edf3; --badge-ink:#141216; color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px}
@@ -34,8 +37,8 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
 header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
-.wrap{max-width:980px;margin:0 auto;padding-inline:16px}
-.bar{display:flex;align-items:center;gap:10px;padding-block:12px}
+.wrap{max-width:1000px;margin:0 auto;padding-inline:16px}
+.bar{display:flex;align-items:center;gap:8px;padding-block:12px;flex-wrap:wrap}
 .bar h1{font-family:var(--display);font-size:20px;margin:0;letter-spacing:.02em}
 .bar small{color:var(--muted);font-size:12px;flex:1}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:7px 14px;font-weight:600;font-size:13px}
@@ -54,95 +57,112 @@ main{padding-block:20px 48px}
 .chip.t-กายภาพ{color:var(--phys);border-color:currentColor}.chip.t-อื่นๆ{color:var(--etc);border-color:currentColor}
 .chip.t-ถึก[aria-pressed="true"]{background:var(--tank);color:var(--surface)}.chip.t-เวทย์[aria-pressed="true"]{background:var(--magic);color:var(--surface)}
 .chip.t-กายภาพ[aria-pressed="true"]{background:var(--phys);color:var(--surface)}.chip.t-อื่นๆ[aria-pressed="true"]{background:var(--etc);color:var(--surface)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
 .card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.tag{background:var(--rose-soft);color:var(--rose);font-size:11px;font-weight:600;border-radius:999px;padding:2px 10px}
-.tag.form{background:var(--none-bg);color:var(--ink)}
+.tag{background:var(--rose-soft);color:var(--rose);font-size:11px;font-weight:600;border-radius:999px;padding:2px 10px;border:1px solid var(--rose-line)}
+.tag.form{background:var(--none-bg);color:var(--ink);border-color:transparent}
 .card-top .n{font-size:12px;color:var(--muted)}
-/* formation board */
-.formation{display:grid;grid-template-columns:1fr auto;background:var(--rose-soft);border:1px solid var(--rose-line);border-radius:10px}
-.formation.ally{background:var(--sky-soft);border-color:var(--sky-line)}
-.formation.ally .petcol{border-left-color:var(--sky-line)}
-.rows{display:flex;flex-direction:column;justify-content:center;gap:10px;padding:12px 26px 12px 8px;min-width:0}
-.row{display:flex;align-items:flex-start;justify-content:center;gap:14px;position:relative;min-height:20px;flex-wrap:wrap}
-.row .pos{position:absolute;right:-22px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;background:var(--surface);border:1.5px solid var(--rose);color:var(--rose)}
-.row.front .pos{border-color:var(--magic);color:var(--magic)}
-.petcol{border-left:1px solid var(--rose-line);padding:12px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
-.hero{display:flex;flex-direction:column;align-items:center;gap:3px;width:64px}
-.pwrap{position:relative}
-.portrait{width:58px;height:58px;border-radius:8px;display:grid;place-items:center;font-family:var(--display);font-size:20px;font-weight:700;position:relative;overflow:hidden;border:2px solid currentColor}
-.portrait .ty{position:absolute;left:2px;top:2px;font-size:9px;line-height:1;padding:2px 3px;border-radius:3px;background:currentColor}
-.portrait .ty span{color:var(--surface)}
-.ty-ถึก{color:var(--tank);background:var(--tank-bg)}.ty-เวทย์{color:var(--magic);background:var(--magic-bg)}
-.ty-กายภาพ{color:var(--phys);background:var(--phys-bg)}.ty-สนับสนุน{color:var(--etc);background:var(--etc-bg)}
-.ty-none{color:var(--none);background:var(--none-bg)}
-.hero .nm{font-size:12px;text-align:center;line-height:1.2;word-break:break-word}
-.slot{width:58px;height:58px;border-radius:8px;border:1.5px dashed var(--line)}
-.orders{position:absolute;right:-11px;top:-4px;display:flex;flex-direction:column;gap:2px}
-.ob{width:18px;height:18px;border-radius:50%;background:var(--badge);color:var(--badge-ink);font-size:10px;font-weight:700;display:grid;place-items:center;font-variant-numeric:tabular-nums}
-.pet .portrait{border-radius:50%;color:var(--rose);background:var(--surface)}
-.subpet .portrait{width:30px;height:30px;font-size:12px;border-width:1.5px}
-.subpet{width:40px}.subpet .nm{font-size:10px;color:var(--muted)}
 .card-foot{border-top:1px solid var(--line);padding-top:8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .card-foot .note{color:var(--muted);font-size:12px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;flex:1;min-width:0}
 .more{border:0;background:none;color:var(--muted);font-size:12px;padding:4px 0;white-space:nowrap;margin-left:auto}
 .more:hover{color:var(--rose)}
-.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:48px 16px;line-height:1.7}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:40px 16px;line-height:1.7;margin:0}
+/* board */
+.board{display:grid;grid-template-columns:1fr auto;background:var(--rose-soft);border:1px solid var(--rose-line);border-radius:12px;min-width:0}
+.board.ally{background:var(--sky-soft);border-color:var(--sky-line)}
+.rows{display:flex;flex-direction:column;justify-content:center;gap:8px;padding:14px 12px;min-width:0}
+.row{display:flex;align-items:flex-start;justify-content:center;gap:10px;position:relative;padding-right:30px}
+.row::before{content:"";position:absolute;left:0;right:20px;top:31px;height:4px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--rail) 45%)}
+.row.B{--rail:var(--rose-rail)}.row.F{--rail:var(--sky-rail)}
+.pos{position:absolute;right:0;top:21px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--surface);border:2px solid var(--rail);color:var(--rail);z-index:1}
+.row.B .pos{color:var(--rose)}.row.F .pos{color:var(--sky)}
+.petcol{border-left:1px solid var(--rose-line);padding:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-width:96px}
+.board.ally .petcol{border-left-color:var(--sky-line)}
+.tile{display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;position:relative;z-index:1;background:none;border:0;padding:0}
+.face{width:60px;height:64px;border-radius:7px;display:grid;place-items:center;font-family:var(--display);font-size:20px;font-weight:700;position:relative;overflow:hidden;border:2px solid currentColor;background:var(--none-bg)}
+.face img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.face .ty{position:absolute;left:2px;bottom:2px;font-size:9px;line-height:1;padding:2px 3px;border-radius:3px;background:currentColor;z-index:1}
+.face .ty span{color:var(--surface)}
+.ty-กายภาพ{color:var(--phys);background:var(--phys-bg)}.ty-เวทย์{color:var(--magic);background:var(--magic-bg)}
+.ty-ถึก{color:var(--tank);background:var(--tank-bg)}.ty-สนับสนุน{color:var(--etc);background:var(--etc-bg)}
+.ty-สมดุล{color:var(--bal);background:var(--bal-bg)}.ty-pet{color:var(--rose);background:var(--surface)}
+.tile .nm{font-size:12px;text-align:center;line-height:1.2;word-break:break-word;color:var(--ink)}
+.slot{width:60px;height:64px;border-radius:7px;border:1.5px dashed var(--dash);background:color-mix(in srgb,var(--surface) 55%,transparent);display:grid;place-items:center;color:var(--muted);font-size:18px}
+.tile.small .face,.tile.small .slot{width:38px;height:40px;font-size:13px;border-width:1.5px}
+.tile.small{width:48px}.tile.small .nm{font-size:10px;color:var(--muted)}
+.orders{position:absolute;right:-9px;top:-4px;display:flex;flex-direction:column;gap:2px;z-index:2}
+.ob{width:18px;height:18px;border-radius:50%;background:var(--badge);color:var(--badge-ink);font-size:10px;font-weight:700;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+/* editable board */
+button.tile{cursor:pointer}
+button.tile[aria-pressed="true"] .face,button.tile[aria-pressed="true"] .slot{outline:3px solid var(--rose);outline-offset:2px}
+button.tile:hover .slot{border-color:var(--rose);color:var(--rose)}
 /* sheet */
 .sheet{position:fixed;inset:0;z-index:10;background:color-mix(in srgb,var(--ink) 45%,transparent);display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:max(24px,env(safe-area-inset-top,0px)) 16px 24px}
-.panel{background:var(--bg);border-radius:16px;width:100%;max-width:640px;padding:18px;display:flex;flex-direction:column;gap:14px}
-.panel.wide{max-width:900px}
+.panel{background:var(--bg);border-radius:16px;width:100%;max-width:640px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.panel.wide{max-width:920px}
 .panel-head{display:flex;align-items:center;gap:8px}
 .panel-head h2{font-family:var(--display);font-size:17px;margin:0;text-wrap:balance;flex:1}
 .x,.backbtn{border:1px solid var(--line);background:var(--surface);border-radius:8px;height:32px;flex:none}
 .x{width:32px}.backbtn{padding:0 10px;font-size:13px}
-.sec{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0 -2px}
+.sec{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0 -2px;flex-wrap:wrap}
 .sec h3{font-size:14px;margin:0;font-family:var(--display)}
 .sec small{color:var(--muted);font-weight:400;font-family:var(--body)}
 .actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .advice{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .advice b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px;font-weight:600}
 .advice p{margin:0;line-height:1.65;white-space:pre-wrap}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.err{color:var(--phys);font-size:13px;margin:0}
 /* hero detail cards */
 .hcards{display:grid;gap:12px}
 .hcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;grid-template-columns:auto 1fr;gap:14px}
-.hcard .who{display:flex;flex-direction:column;align-items:center;gap:6px;width:76px}
-.hcard .who .nm{font-weight:600;font-size:13px;text-align:center}
-.hcard .who .tyl{font-size:11px}
+.hcard .who{display:flex;flex-direction:column;align-items:center;gap:4px;width:76px}
+.hcard .who .tyl{font-size:11px;background:none}
 .hbody{display:flex;flex-direction:column;gap:10px;min-width:0}
-.gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
 .glabel{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.02em}
 .pills{display:flex;flex-wrap:wrap;gap:4px}
 .pill{background:var(--none-bg);border-radius:6px;padding:3px 8px;font-size:12px}
-.pill.ring{background:var(--tank-bg);color:var(--tank)}
-.pill.set{background:var(--etc-bg);color:var(--etc)}
+.pill.ring{background:var(--tank-bg);color:var(--tank)}.pill.set{background:var(--etc-bg);color:var(--etc)}
 .pill.ord{background:var(--badge);color:var(--badge-ink);font-variant-numeric:tabular-nums}
 .dash{color:var(--muted);font-size:12px}
 .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .stat{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;font-size:12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);margin:0 -1px -1px 0}
-.stat span{color:var(--muted)}
-.stat b{font-variant-numeric:tabular-nums;font-weight:600}
+.stat span{color:var(--muted)}.stat b{font-variant-numeric:tabular-nums;font-weight:600}
 .hdetail{margin:0;line-height:1.6;white-space:pre-wrap}
-/* editor */
-.fset{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:10px}
+/* forms */
+.fset{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:12px;min-width:0}
 .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
-.field span{font-size:12px;color:var(--muted)}
+.field>span{font-size:12px;color:var(--muted)}
 .field input,.field select,.field textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
 .field textarea{resize:vertical;min-height:56px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:6px 12px;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.picker{background:var(--bg);border:1px solid var(--rose-line);border-radius:12px;padding:12px;display:grid;gap:10px}
+.picker-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.picker-head b{font-size:13px;flex:1;min-width:140px}
+.picker-head input{flex:2;min-width:160px;font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:10px;justify-items:center;max-height:280px;overflow-y:auto;padding:4px}
+.pick-grid .tile[data-placed="true"] .face{opacity:.45}
 .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
 .sgrid .field input{padding:6px 8px;font-variant-numeric:tabular-nums}
 details.hed{background:var(--surface);border:1px solid var(--line);border-radius:12px}
 details.hed summary{padding:10px 12px;cursor:pointer;font-weight:600;display:flex;align-items:center;gap:8px}
 details.hed summary small{color:var(--muted);font-weight:400}
 details.hed .inner{padding:0 12px 12px;display:grid;gap:10px}
-.hint{font-size:12px;color:var(--muted);margin:0}
-.err{color:var(--phys);font-size:13px;margin:0}
-.fset-head b{font-size:13px}
+/* character library */
+.tabs{display:flex;gap:6px}
+.lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:12px;justify-items:center}
+.preview{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.preview .face{width:84px;height:90px;font-size:28px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:13px;z-index:20}
 @media (max-width:480px){
-  .hero{width:56px}.portrait,.slot{width:50px;height:50px;font-size:17px}.row{gap:10px}
+  .tile{width:54px}.face,.slot{width:50px;height:54px;font-size:17px}.row{gap:6px}
+  .row::before{top:26px}.pos{top:16px}
+  .petcol{min-width:72px;padding:10px 6px}
   .bar small{display:none}.bar h1{flex:1}
   .hcard{grid-template-columns:1fr}.hcard .who{flex-direction:row;width:auto}
 }
@@ -150,70 +170,75 @@ details.hed .inner{padding:0 12px 12px;display:grid;gap:10px}
 </style>
 </head>
 <body>
-<header><div class="wrap bar"><h1>47LOVEPIYA</h1><small>ฐานข้อมูลทีมแก้</small><button class="btn" id="login">แอดมิน</button><button class="btn primary" id="add" hidden>+ เพิ่มทีม</button></div></header>
+<header><div class="wrap bar"><h1>47LOVEPIYA</h1><small>ฐานข้อมูลทีมแก้</small>
+  <button class="btn" id="library" hidden>คลังตัวละคร</button>
+  <button class="btn" id="login">แอดมิน</button>
+  <button class="btn primary" id="add" hidden>+ เพิ่มทีม</button></div></header>
 <main class="wrap">
   <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <input id="q" type="search" placeholder="ค้นหาทีมศัตรู... เช่น ยูนอน อีวูอี" aria-label="ค้นหาตัวละคร"></label>
+    <input id="q" type="search" placeholder="ค้นหาทีมเป้าหมายจากชื่อตัวละคร" aria-label="ค้นหาตัวละคร"></label>
   <div class="filters" id="filters"></div>
-  <div class="grid" id="grid"><p class="empty">กำลังโหลดทีม...</p></div>
+  <div class="grid" id="grid"><p class="empty">กำลังโหลด...</p></div>
 </main>
-<datalist id="heroList"></datalist>
-<datalist id="petList"></datalist>
 <div class="sheet" id="sheet" hidden></div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
-// Known heroes set the color of a tile. A name not listed here still works and shows grey.
-const HEROES = {
-  "ยูนอน":"กายภาพ","โดยอง":"กายภาพ","อีวูอี":"สนับสนุน","ยอนฮี":"เวทย์","ไอลีน":"ถึก","อาริส":"สนับสนุน",
-  "แร็ดคริด":"ถึก","โอบิก":"เวทย์","ซอริน":"กายภาพ","เดลโลนส์":"กายภาพ","สกัส":"เวทย์","รูดี้":"ถึก",
-  "เรเชล":"เวทย์","คริส":"กายภาพ","เอซ":"สนับสนุน"
-};
-const PETS = ["ปุยหิมะ","แมวทอง","นกเพลิง","อีกาดำ"];
+// ---------- constants (must match lib/team.js and lib/characters.js)
 const TEAM_TYPES = ["ถึก","เวทย์","กายภาพ","อื่นๆ"];
-// Must match FORMATIONS in lib/team.js
-const FORMATIONS = {"หน้า 1 หลัง 4":{F:1,B:4},"หน้า 2 หลัง 3":{F:2,B:3},"หน้า 3 หลัง 2":{F:3,B:2},"หน้า 4 หลัง 1":{F:4,B:1}};
-// Must match STAT_KEYS in lib/team.js. [key, label, unit]
-const STATS = [
+const HERO_TYPES = ["กายภาพ","เวทย์","ถึก","สนับสนุน","สมดุล"];
+const FORMATIONS = {"หน้า 4 หลัง 1":{F:4,B:1},"หน้า 3 หลัง 2":{F:3,B:2},"หน้า 2 หลัง 3":{F:2,B:3},"หน้า 1 หลัง 4":{F:1,B:4}};
+const MAX_HEROES = 3;
+const STATS = [ // [key, label, unit]
   ["atk","พลังโจมตี",""],["def","ป้องกัน",""],["hp","HP",""],["spd","สปีด",""],
   ["crit","อัตราคริ","%"],["critDmg","ดาเมจคริ","%"],["weak","โอกาสโดนจุดอ่อน","%"],["block","อัตราบล็อก","%"],
   ["hit","เข้าเป้า","%"],["res","ต้านทาน","%"],["dtr","ลดดาเมจที่ได้รับ","%"],["amp","เพิ่มดาเมจ","%"],
   ["crush","บดขยี้","%"],["resil","ความทนทาน","%"],["rejuv","ฟื้นฟู","%"]
 ];
 
-const state = {q:"", type:"ทั้งหมด", teams:null, canWrite:false, password:null};
+const state = {q:"", type:"ทั้งหมด", teams:null, chars:new Map(), canWrite:false, password:null};
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const members = t => [...t.back, ...t.front];
 const splitList = s => s.split(/[,，]/).map(x => x.trim()).filter(Boolean);
+const placed = l => [...l.back, ...l.front].filter(Boolean);
 const teamById = id => { const t = state.teams.find(x => x.id === id); if(!t) throw new Error("ไม่พบทีม " + id); return t; };
-
+const char = id => { const c = state.chars.get(id); if(!c) throw new Error("ไม่พบตัวละคร " + id); return c; };
+const charsOf = kind => [...state.chars.values()].filter(c => c.kind === kind);
 function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 2200); }
 
-// ---------- rendering pieces
-function heroHTML(name, order){
-  const ty = HEROES[name];
-  const badge = ty ? `<span class="ty"><span>${ty[0]}</span></span>` : "";
-  const ob = order && order.length ? `<span class="orders">${order.map(n => `<span class="ob">${n}</span>`).join("")}</span>` : "";
-  return `<div class="hero"><div class="pwrap"><div class="portrait ${ty ? "ty-" + ty : "ty-none"}">${badge}${esc([...name][0])}</div>${ob}</div><span class="nm">${esc(name)}</span></div>`;
+// ---------- tiles and boards
+function faceHTML(c){
+  const cls = c.kind === "pet" ? "ty-pet" : "ty-" + c.type;
+  const badge = c.kind === "hero" ? `<span class="ty"><span>${c.type[0]}</span></span>` : "";
+  return `<div class="face ${cls}">${esc([...c.name][0])}${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : ""}${badge}</div>`;
 }
-const petHTML = (name, cls = "pet") => `<div class="hero ${cls}"><div class="portrait">${esc([...name][0])}</div><span class="nm">${esc(name)}</span></div>`;
-function rowHTML(names, slots, cls, label, heroes){
-  const empties = slots === undefined ? 0 : Math.max(0, slots - names.length);
-  return `<div class="row ${cls}">${names.map(n => heroHTML(n, heroes?.[n]?.order)).join("")}${'<div class="hero"><div class="slot"></div></div>'.repeat(empties)}<span class="pos" title="${label}">${cls === "back" ? "B" : "F"}</span></div>`;
+// opts: {order, small, button:{attrs, pressed}}
+function tileHTML(id, opts = {}){
+  const inner = id
+    ? `${faceHTML(char(id))}${opts.order?.length ? `<span class="orders">${opts.order.map(n => `<span class="ob">${n}</span>`).join("")}</span>` : ""}<span class="nm">${esc(char(id).name)}</span>`
+    : `<div class="slot">${opts.button ? "+" : ""}</div>`;
+  const cls = `tile${opts.small ? " small" : ""}`;
+  return opts.button
+    ? `<button type="button" class="${cls}" ${opts.button.attrs} aria-pressed="${!!opts.button.pressed}">${inner}</button>`
+    : `<div class="${cls}">${inner}</div>`;
 }
-// t: {back, front, pet, subPet?, formation?, heroes?}
-function formationHTML(t, ally = false){
-  const slots = FORMATIONS[t.formation];
-  return `<div class="formation${ally ? " ally" : ""}"><div class="rows">
-    ${rowHTML(t.back, slots?.B, "back", "แถวหลัง", t.heroes)}
-    ${rowHTML(t.front, slots?.F, "front", "แถวหน้า", t.heroes)}
-  </div><div class="petcol">${t.pet ? petHTML(t.pet) : ""}${t.subPet ? petHTML(t.subPet, "subpet") : ""}</div></div>`;
+// l: lineup {formation, back, front, pet, subPet?, heroes?}. edit: {active} makes slots clickable.
+function boardHTML(l, {ally = false, edit = null, withSubPet = false} = {}){
+  const slot = (id, key, small) => tileHTML(id, {
+    order: l.heroes?.[id]?.order, small,
+    button: edit ? {attrs: `data-slot="${key}" aria-label="ช่อง ${key}"`, pressed: edit.active === key} : null,
+  });
+  const row = (ids, r) => `<div class="row ${r}">${ids.map((id, i) => slot(id, `${r === "B" ? "back" : "front"}:${i}`)).join("")}<span class="pos">${r}</span></div>`;
+  const showSub = withSubPet && (edit || l.subPet);
+  return `<div class="board${ally ? " ally" : ""}"><div class="rows">${row(l.back, "B")}${row(l.front, "F")}</div>
+    <div class="petcol">${slot(l.pet || null, "pet")}${showSub ? slot(l.subPet || null, "subPet", true) : ""}</div></div>`;
 }
+
+// ---------- list
 function matches(t){
   if(state.type !== "ทั้งหมด" && t.type !== state.type) return false;
   const q = state.q.trim();
-  return !q || [...members(t), ...t.counters.flatMap(members)].some(n => n.includes(q));
+  return !q || [...placed(t), ...t.counters.flatMap(placed)].some(id => char(id).name.includes(q));
 }
 function renderFilters(){
   $("#filters").innerHTML = `<span class="lbl">ประเภททีม</span>` + ["ทั้งหมด", ...TEAM_TYPES].map(ty =>
@@ -225,52 +250,54 @@ function render(){
   if(state.teams === null) return;
   const grid = $("#grid");
   if(!state.teams.length){
-    grid.innerHTML = `<p class="empty">ยังไม่มีทีม${state.canWrite ? "<br>กด “+ เพิ่มทีม” ด้านบนเพื่อเพิ่มทีมแรก" : ""}</p>`;
+    const hint = !state.canWrite ? "" : charsOf("hero").length && charsOf("pet").length
+      ? "<br>กด “+ เพิ่มทีม” ด้านบนเพื่อเพิ่มทีมแรก"
+      : "<br>เริ่มจากกด “คลังตัวละคร” เพิ่มฮีโร่และสัตว์เลี้ยงก่อน แล้วค่อยเพิ่มทีม";
+    grid.innerHTML = `<p class="empty">ยังไม่มีทีม${hint}</p>`;
     return;
   }
   const list = state.teams.filter(matches);
   grid.innerHTML = list.length ? list.map(t => `
     <article class="card">
-      <div class="card-top"><span class="tag">ทีมที่ต้องการตี</span><span class="n">${t.counters.length} ทีมแก้</span></div>
-      ${formationHTML(t)}
-      <div class="card-foot"><button class="more" data-open-enemy="${esc(t.id)}">ดูเพิ่ม ›</button></div>
+      <div class="card-top"><span class="tag">ทีมเป้าหมาย · ${esc(t.type)}</span><span class="n">${t.counters.length} ทีมแก้</span></div>
+      ${boardHTML(t)}
+      <div class="card-foot"><span class="note">${esc(t.formation)}</span><button class="more" data-open-target="${esc(t.id)}">ดูเพิ่ม ›</button></div>
     </article>`).join("") : `<p class="empty">ไม่พบทีมที่ตรงกับ “${esc(state.q)}”</p>`;
 }
 
-// ---------- view: enemy team + its counters
-function openEnemy(id){
+// ---------- view: target team + counters
+function openTarget(id){
   const t = teamById(id);
   showPanel(`<div class="panel wide" role="dialog" aria-modal="true" aria-labelledby="ph">
-    <div class="panel-head"><h2 id="ph">ทีมที่ต้องการตี · ${esc(t.type)}</h2><button class="x" data-close aria-label="ปิด">✕</button></div>
-    ${formationHTML(t)}
-    ${state.canWrite ? `<div class="actions"><button class="btn" data-edit-enemy="${esc(t.id)}">แก้ไขทีมศัตรู</button></div>` : ""}
+    <div class="panel-head"><h2 id="ph">ทีมเป้าหมาย · ${esc(t.type)} · ${esc(t.formation)}</h2><button class="x" data-close aria-label="ปิด">✕</button></div>
+    ${boardHTML(t)}
+    ${state.canWrite ? `<div class="actions"><button class="btn" data-edit-target="${esc(t.id)}">แก้ไขทีมเป้าหมาย</button></div>` : ""}
     <div class="sec"><h3>ทีมที่ใช้ต่อสู้ได้ <small>${t.counters.length} ทีม</small></h3>
       ${state.canWrite ? `<button class="btn primary" data-add-counter="${esc(t.id)}">+ เพิ่มทีมสู้</button>` : ""}</div>
     ${t.counters.length ? `<div class="grid">${t.counters.map((c, i) => `
       <article class="card">
-        <div class="card-top"><span class="tag form">${esc(c.formation || "ทีมสู้ " + (i + 1))}</span></div>
-        ${formationHTML(c, true)}
+        <div class="card-top"><span class="tag form">${esc(c.formation)}</span></div>
+        ${boardHTML(c, {ally: true, withSubPet: true})}
         <div class="card-foot">${c.note ? `<span class="note">${esc(c.note)}</span>` : ""}<button class="more" data-open-counter="${esc(t.id)}" data-i="${i}">ดูรายละเอียด ›</button></div>
       </article>`).join("")}</div>`
     : `<p class="empty">ยังไม่มีทีมสู้${state.canWrite ? " กด “+ เพิ่มทีมสู้” เพื่อเพิ่ม" : ""}</p>`}
   </div>`);
 }
 
-// ---------- view: one counter team in full
+// ---------- view: counter detail
 function statsHTML(stats){
   const filled = STATS.filter(([k]) => stats[k] !== undefined);
-  if(!filled.length) return "";
-  return `<div><div class="glabel">สเตตัส</div><div class="stats">${filled.map(([k, label, unit]) =>
-    `<div class="stat"><span>${label}</span><b>${stats[k].toLocaleString("th-TH")}${unit}</b></div>`).join("")}</div></div>`;
+  return filled.length ? `<div><div class="glabel">สเตตัส</div><div class="stats">${filled.map(([k, label, unit]) =>
+    `<div class="stat"><span>${label}</span><b>${stats[k].toLocaleString("th-TH")}${unit}</b></div>`).join("")}</div></div>` : "";
 }
-function pills(list, cls){ return list.length ? `<div class="pills">${list.map(x => `<span class="pill ${cls}">${esc(x)}</span>`).join("")}</div>` : `<span class="dash">—</span>`; }
-function heroCardHTML(name, d){
-  const ty = HEROES[name];
+const pills = (list, cls) => list.length ? `<div class="pills">${list.map(x => `<span class="pill ${cls}">${esc(x)}</span>`).join("")}</div>` : `<span class="dash">—</span>`;
+function heroCardHTML(id, d){
+  const c = char(id);
   return `<div class="hcard">
-    <div class="who">${heroHTML(name)}${ty ? `<span class="tyl ty-${ty}" style="background:none">${ty}</span>` : ""}</div>
+    <div class="who">${tileHTML(id)}<span class="tyl ty-${c.type}">${c.type}</span></div>
     <div class="hbody">
       <div class="gear">
-        <div><div class="glabel">ลำดับกดสกิล</div>${d.order.length ? `<div class="pills">${d.order.map(n => `<span class="pill ord">${n}</span>`).join("")}</div>` : `<span class="dash">—</span>`}</div>
+        <div><div class="glabel">ลำดับกดสกิล</div>${pills(d.order.map(String), "ord")}</div>
         <div><div class="glabel">แหวน</div>${pills(d.rings, "ring")}</div>
         <div><div class="glabel">เซ็ตไอเทม</div>${pills(d.sets, "set")}</div>
       </div>
@@ -281,14 +308,14 @@ function heroCardHTML(name, d){
 }
 function openCounter(id, i){
   const t = teamById(id), c = t.counters[i];
-  const withDetail = members(c).filter(n => c.heroes[n]);
+  const withDetail = placed(c).filter(h => c.heroes[h]);
   showPanel(`<div class="panel wide" role="dialog" aria-modal="true" aria-labelledby="ph">
-    <div class="panel-head"><button class="backbtn" data-open-enemy="${esc(id)}">‹ กลับ</button><h2 id="ph">รายละเอียดทีมสู้${c.formation ? " · " + esc(c.formation) : ""}</h2><button class="x" data-close aria-label="ปิด">✕</button></div>
-    <p class="hint">สู้กับ ${esc(members(t).join(" · "))}</p>
-    ${formationHTML(c, true)}
+    <div class="panel-head"><button class="backbtn" data-open-target="${esc(id)}">‹ กลับ</button><h2 id="ph">รายละเอียดทีมสู้ · ${esc(c.formation)}</h2><button class="x" data-close aria-label="ปิด">✕</button></div>
+    <p class="hint">สู้กับ ${esc(placed(t).map(h => char(h).name).join(" · "))}</p>
+    ${boardHTML(c, {ally: true, withSubPet: true})}
     ${c.note ? `<div class="advice"><b>คำแนะนำ / วิธีเล่น</b><p>${esc(c.note)}</p></div>` : ""}
     <div class="sec"><h3>ตัวละคร</h3></div>
-    ${withDetail.length ? `<div class="hcards">${withDetail.map(n => heroCardHTML(n, c.heroes[n])).join("")}</div>`
+    ${withDetail.length ? `<div class="hcards">${withDetail.map(h => heroCardHTML(h, c.heroes[h])).join("")}</div>`
       : `<p class="empty">ยังไม่มีรายละเอียดตัวละคร${state.canWrite ? " กด “แก้ไขทีมสู้” เพื่อเพิ่ม" : ""}</p>`}
     ${state.canWrite ? `<p class="err" id="formErr" hidden></p><div class="actions">
       <button class="btn danger" data-del-counter="${esc(id)}" data-i="${i}">ลบทีมสู้</button>
@@ -296,53 +323,124 @@ function openCounter(id, i){
   </div>`);
 }
 
-// ---------- editor: enemy team (formation only; counters are edited one by one)
-function namesFields(prefix, f){
-  return `<div class="fgrid">
-    <label class="field"><span>แถวหลัง (B)</span><input id="${prefix}-back" list="heroList" value="${esc(f.back.join(", "))}" placeholder="ยูนอน, โดยอง" data-names></label>
-    <label class="field"><span>แถวหน้า (F)</span><input id="${prefix}-front" list="heroList" value="${esc(f.front.join(", "))}" placeholder="อีวูอี" data-names></label>
-    <label class="field"><span>สัตว์เลี้ยง</span><input id="${prefix}-pet" list="petList" value="${esc(f.pet)}" placeholder="ปุยหิมะ"></label>
+// ---------- lineup editing (shared by target and counter editors)
+// state.draft: {formation, back, front, pet, subPet?}; state.active: slot key being filled ("back:1", "pet", "subPet") or null
+function emptyLineup(formation = "หน้า 3 หลัง 2"){
+  const s = FORMATIONS[formation];
+  return {formation, back: Array(s.B).fill(null), front: Array(s.F).fill(null), pet: ""};
+}
+// Keep heroes in their row and position where the new formation allows; move the rest into free slots.
+function reflow(d, formation){
+  const s = FORMATIONS[formation];
+  const next = {back: Array(s.B).fill(null), front: Array(s.F).fill(null)}, spill = [];
+  for(const r of ["back", "front"]) d[r].forEach((id, i) => { if(!id) return; if(i < next[r].length) next[r][i] = id; else spill.push([r, id]); });
+  for(const [r, id] of spill){
+    const order = r === "back" ? ["back", "front"] : ["front", "back"];
+    const target = order.find(o => next[o].includes(null));
+    next[target][next[target].indexOf(null)] = id;
+  }
+  return {...d, formation, ...next};
+}
+const slotGet = (d, key) => key.includes(":") ? d[key.split(":")[0]][+key.split(":")[1]] : d[key];
+function slotSet(d, key, id){ if(key.includes(":")){ const [r, i] = key.split(":"); d[r][+i] = id; } else d[key] = id; }
+function slotLabel(key){
+  if(key === "pet") return "สัตว์เลี้ยง";
+  if(key === "subPet") return "สัตว์เลี้ยงรอง";
+  const [r, i] = key.split(":"); return `${r === "back" ? "แถวหลัง" : "แถวหน้า"} ช่อง ${+i + 1}`;
+}
+function lineupEditorHTML(withSubPet){
+  return `<div class="fset">
+    <div class="field"><span>ฟอร์เมชัน</span><div class="seg" id="formSeg"></div></div>
+    <div id="board"></div>
+    <p class="hint">กดช่องเพื่อเลือกตัวละคร ใส่ฮีโร่ได้ ${MAX_HEROES} ตัว + สัตว์เลี้ยง 1 ตัว${withSubPet ? " (สัตว์เลี้ยงรองไม่บังคับ)" : ""}</p>
+    <div id="picker" hidden></div>
   </div>`;
 }
-function openEnemyEditor(id){
-  const t = id ? teamById(id) : {type:"กายภาพ", back:[], front:[], pet:"", counters:[]};
-  showPanel(`<form class="panel" id="enemyForm" data-id="${id ? esc(id) : ""}" role="dialog" aria-modal="true" aria-labelledby="ph">
-    <div class="panel-head">${id ? `<button type="button" class="backbtn" data-open-enemy="${esc(id)}">‹ กลับ</button>` : ""}<h2 id="ph">${id ? "แก้ไขทีมศัตรู" : "เพิ่มทีมที่ต้องการตี"}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
-    <p class="hint">ใส่ชื่อตัวละครคั่นด้วยจุลภาค ( , ) แต่ละแถวไม่เกิน 4 ตัว รวมทั้งทีม 1–5 ตัว ทีมสู้เพิ่มได้หลังบันทึก</p>
-    <div class="fset">
-      <label class="field"><span>ประเภททีม</span><select id="e-type">${TEAM_TYPES.map(ty => `<option${ty === t.type ? " selected" : ""}>${ty}</option>`).join("")}</select></label>
-      ${namesFields("e", t)}
-    </div>
+function renderLineup(){
+  const d = state.draft;
+  $("#formSeg").innerHTML = Object.keys(FORMATIONS).map(f => `<button type="button" data-formation="${f}" aria-pressed="${f === d.formation}">${f}</button>`).join("");
+  $("#board").innerHTML = boardHTML(d, {ally: state.draftAlly, edit: {active: state.active}, withSubPet: state.draftAlly});
+  renderPicker();
+  if(state.onLineupChange) state.onLineupChange();
+}
+const activeKind = () => state.active === "pet" || state.active === "subPet" ? "pet" : "hero";
+function renderPicker(){
+  const box = $("#picker"), key = state.active;
+  box.hidden = !key;
+  if(!key) return;
+  const kind = activeKind();
+  box.innerHTML = `<div class="picker-head"><b>เลือก${kind === "hero" ? "ฮีโร่" : "สัตว์เลี้ยง"} · ${slotLabel(key)}</b>
+      <input id="pickQ" type="search" placeholder="ค้นหาชื่อ" value="${esc(state.pickQ)}" aria-label="ค้นหาชื่อ">
+      ${slotGet(state.draft, key) ? `<button type="button" class="btn" data-pick="">เอาออกจากช่อง</button>` : ""}
+      <button type="button" class="btn" data-pick-close>ปิด</button></div>
+    <p class="err" id="pickErr" hidden></p>
+    <div id="pickGrid"></div>`;
+  renderPickGrid();
+}
+// Only the results redraw while typing in the search box.
+function renderPickGrid(){
+  const kind = activeKind(), q = state.pickQ.trim(), d = state.draft, current = slotGet(d, state.active);
+  const inTeam = kind === "hero" ? placed(d) : [d.pet, d.subPet].filter(Boolean);
+  const list = charsOf(kind).filter(c => !q || c.name.includes(q));
+  $("#pickGrid").innerHTML = list.length
+    ? `<div class="pick-grid">${list.map(c => tileHTML(c.id, {button: {attrs: `data-pick="${esc(c.id)}" data-placed="${inTeam.includes(c.id)}"`, pressed: c.id === current}})).join("")}</div>`
+    : `<p class="hint">${charsOf(kind).length ? "ไม่พบชื่อที่ค้นหา" : `ยังไม่มี${kind === "hero" ? "ฮีโร่" : "สัตว์เลี้ยง"}ในคลัง เพิ่มได้ที่ “คลังตัวละคร”`}</p>`;
+}
+function pick(id){
+  const d = state.draft, key = state.active, current = slotGet(d, key);
+  if(id && key.includes(":")){
+    const from = [...d.back.map((h, i) => [`back:${i}`, h]), ...d.front.map((h, i) => [`front:${i}`, h])].find(([, h]) => h === id)?.[0];
+    if(from) slotSet(d, from, current);            // already placed: swap with this slot
+    else if(!current && placed(d).length >= MAX_HEROES){
+      const e = $("#pickErr"); e.textContent = `ครบ ${MAX_HEROES} ตัวแล้ว เอาตัวอื่นออกก่อน หรือกดช่องที่มีตัวละครเพื่อเปลี่ยน`; e.hidden = false; return;
+    }
+  }
+  if(id && (key === "pet" || key === "subPet") && id === d[key === "pet" ? "subPet" : "pet"]){
+    const e = $("#pickErr"); e.textContent = "สัตว์เลี้ยงหลักกับรองต้องไม่ซ้ำกัน"; e.hidden = false; return;
+  }
+  slotSet(d, key, id || (key.includes(":") ? null : ""));
+  state.active = null;
+  renderLineup();
+}
+function lineupFromDraft(){
+  const d = state.draft;
+  if(!placed(d).length) throw new Error("ใส่ฮีโร่อย่างน้อย 1 ตัว");
+  if(!d.pet) throw new Error("เลือกสัตว์เลี้ยงด้วย");
+  return {formation: d.formation, back: [...d.back], front: [...d.front], pet: d.pet};
+}
+function startLineup(l, ally){
+  state.draft = {...l, back: [...l.back], front: [...l.front]};
+  state.draftAlly = ally; state.active = null; state.pickQ = ""; state.onLineupChange = null;
+}
+
+// ---------- editor: target team
+function openTargetEditor(id){
+  const t = id ? teamById(id) : null;
+  startLineup(t || emptyLineup(), false);
+  showPanel(`<form class="panel wide" id="targetForm" data-id="${id ? esc(id) : ""}" role="dialog" aria-modal="true" aria-labelledby="ph">
+    <div class="panel-head">${id ? `<button type="button" class="backbtn" data-open-target="${esc(id)}">‹ กลับ</button>` : ""}<h2 id="ph">${id ? "แก้ไขทีมเป้าหมาย" : "เพิ่มทีมเป้าหมาย"}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
+    <label class="field"><span>ประเภททีม</span><select id="e-type">${TEAM_TYPES.map(ty => `<option${ty === t?.type ? " selected" : ""}>${ty}</option>`).join("")}</select></label>
+    ${lineupEditorHTML(false)}
     <p class="err" id="formErr" hidden></p>
     <div class="actions">
-      ${id ? `<button type="button" class="btn danger" id="delEnemy">ลบทีมนี้ทั้งหมด</button>` : ""}
+      ${id ? `<button type="button" class="btn danger" id="delTarget">ลบทีมนี้ทั้งหมด</button>` : ""}
       <button type="submit" class="btn primary" id="save">บันทึก</button>
     </div>
   </form>`);
+  renderLineup();
 }
-function readNames(prefix, label){
-  const f = {back: splitList($(`#${prefix}-back`).value), front: splitList($(`#${prefix}-front`).value), pet: $(`#${prefix}-pet`).value.trim()};
-  const all = [...f.back, ...f.front];
-  if(!all.length) throw new Error(`${label}: ต้องมีตัวละครอย่างน้อย 1 ตัว`);
-  if(f.back.length > 4 || f.front.length > 4) throw new Error(`${label}: แต่ละแถวไม่เกิน 4 ตัว`);
-  if(all.length > 5) throw new Error(`${label}: รวมทั้งทีมไม่เกิน 5 ตัว`);
-  if(new Set(all).size !== all.length) throw new Error(`${label}: มีชื่อตัวละครซ้ำ`);
-  return f;
-}
-async function saveEnemy(form){
+async function saveTarget(form){
   const id = form.dataset.id;
-  const base = {type: $("#e-type").value, ...readNames("e", "ทีมที่ต้องการตี")};
-  const team = id ? {...teamById(id), ...base} : {...base, counters: []};
+  const team = {...(id ? teamById(id) : {counters: []}), type: $("#e-type").value, ...lineupFromDraft()};
   const saved = await api(id ? "PUT" : "POST", id ? teamUrl(id) : "/api/teams", strip(team));
-  await loadTeams();
-  toast("บันทึกแล้ว");
-  openEnemy(id || saved.id);
+  await loadAll(); toast("บันทึกแล้ว"); openTarget(id || saved.id);
 }
 
-// ---------- editor: one counter team with per-hero details
-function heroFieldsHTML(name, d){
-  return `<details class="hed" data-hero="${esc(name)}" open>
-    <summary>${esc(name)} <small>${HEROES[name] || "ตัวละครใหม่"}</small></summary>
+// ---------- editor: counter team (+ per-hero details)
+function heroFieldsHTML(id, d){
+  const c = char(id);
+  return `<details class="hed" data-hero="${esc(id)}" open>
+    <summary>${esc(c.name)} <small>${c.type}</small></summary>
     <div class="inner">
       <div class="fgrid">
         <label class="field"><span>ลำดับกดสกิล (เช่น 2, 3)</span><input data-f="order" value="${esc(d.order.join(", "))}" inputmode="numeric"></label>
@@ -351,97 +449,142 @@ function heroFieldsHTML(name, d){
       </div>
       <div class="sgrid">${STATS.map(([key, label, unit]) =>
         `<label class="field"><span>${label}${unit ? " (" + unit + ")" : ""}</span><input data-s="${key}" type="number" min="0" step="any" value="${d.stats[key] ?? ""}"></label>`).join("")}</div>
-      <label class="field"><span>รายละเอียด / คำแนะนำของตัวนี้</span><textarea data-f="detail" placeholder="เช่น คาว6+6 สปีดเกินซอรีน ต้าน100 เข้าเป้า30">${esc(d.detail)}</textarea></label>
+      <label class="field"><span>รายละเอียด / คำแนะนำของตัวนี้</span><textarea data-f="detail" placeholder="เช่น คาว6+6 สปีดเกินซอริน ต้าน100 เข้าเป้า30">${esc(d.detail)}</textarea></label>
     </div>
   </details>`;
 }
 const blankHero = () => ({order:[], rings:[], sets:[], stats:{}, detail:""});
 function readHero(el){
-  const name = el.dataset.hero, f = k => el.querySelector(`[data-f="${k}"]`).value;
+  const name = char(el.dataset.hero).name, f = k => el.querySelector(`[data-f="${k}"]`).value;
   const order = splitList(f("order")).map(Number);
   if(order.some(n => !Number.isInteger(n) || n < 1 || n > 20)) throw new Error(`${name}: ลำดับสกิลต้องเป็นเลข 1–20`);
   const rings = splitList(f("rings")), sets = splitList(f("sets"));
   if(rings.length > 3 || sets.length > 3) throw new Error(`${name}: แหวนและเซ็ตไอเทมใส่ได้อย่างละไม่เกิน 3`);
   const stats = {};
   for(const input of el.querySelectorAll("[data-s]")) if(input.value !== "") stats[input.dataset.s] = Number(input.value);
-  return [name, {order, rings, sets, stats, detail: f("detail").trim()}];
+  return [el.dataset.hero, {order, rings, sets, stats, detail: f("detail").trim()}];
 }
-function readHeroes(){
-  return Object.fromEntries([...$("#heroFields").querySelectorAll("[data-hero]")].map(readHero));
-}
-// One live section per hero name. Sections are kept as nodes (never re-rendered), so typed values survive
-// renames and the field the user is moving into is never replaced. Called on every keystroke in the name fields.
+const readHeroes = () => Object.fromEntries([...$("#heroFields").querySelectorAll("[data-hero]")].map(readHero));
+// One live section per placed hero, kept as nodes so typed values survive slot changes.
 function syncHeroFields(){
-  const names = [...splitList($("#c-back").value), ...splitList($("#c-front").value)];
-  const box = $("#heroFields");
+  const ids = placed(state.draft), box = $("#heroFields");
   for(const el of box.querySelectorAll("[data-hero]")) state.heroNodes.set(el.dataset.hero, el);
-  const hint = names.length ? null : Object.assign(document.createElement("p"), {className: "hint", textContent: "ใส่ชื่อตัวละครด้านบนก่อน ช่องรายละเอียดจะขึ้นที่นี่"});
-  box.replaceChildren(...(hint ? [hint] : [...new Set(names)].map(n => {
-    if(!state.heroNodes.has(n)){
+  if(!ids.length){ box.innerHTML = `<p class="hint">วางฮีโร่ลงช่องด้านบนก่อน ช่องรายละเอียดจะขึ้นที่นี่</p>`; return; }
+  box.replaceChildren(...ids.map(id => {
+    if(!state.heroNodes.has(id)){
       const tpl = document.createElement("template");
-      tpl.innerHTML = heroFieldsHTML(n, state.editHeroes[n] || blankHero());
-      state.heroNodes.set(n, tpl.content.firstElementChild);
+      tpl.innerHTML = heroFieldsHTML(id, state.editHeroes[id] || blankHero());
+      state.heroNodes.set(id, tpl.content.firstElementChild);
     }
-    return state.heroNodes.get(n);
-  })));
+    return state.heroNodes.get(id);
+  }));
 }
 function openCounterEditor(id, i){
   const t = teamById(id);
-  const c = i === null ? {back:[], front:[], pet:"", subPet:"", formation:"", note:"", heroes:{}} : t.counters[i];
-  state.editHeroes = c.heroes;
-  state.heroNodes = new Map();
+  const c = i === null ? {...emptyLineup(), subPet: "", note: "", heroes: {}} : t.counters[i];
+  startLineup({...c, subPet: c.subPet}, true);
+  state.editHeroes = c.heroes; state.heroNodes = new Map();
   showPanel(`<form class="panel wide" id="counterForm" data-id="${esc(id)}" data-i="${i === null ? "" : i}" role="dialog" aria-modal="true" aria-labelledby="ph">
-    <div class="panel-head"><button type="button" class="backbtn" data-open-enemy="${esc(id)}">‹ กลับ</button><h2 id="ph">${i === null ? "เพิ่มทีมสู้" : "แก้ไขทีมสู้"}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
-    <p class="hint">สู้กับ ${esc(members(t).join(" · "))}</p>
-    <div class="fset">
-      <div class="fgrid">
-        <label class="field"><span>ฟอร์เมชัน</span><select id="c-formation"><option value="">ไม่ระบุ</option>${Object.keys(FORMATIONS).map(f => `<option${f === c.formation ? " selected" : ""}>${f}</option>`).join("")}</select></label>
-        <label class="field"><span>สัตว์เลี้ยงรอง</span><input id="c-subPet" list="petList" value="${esc(c.subPet)}"></label>
-      </div>
-      ${namesFields("c", c)}
-      <label class="field"><span>คำแนะนำ / วิธีเล่นของทีม</span><textarea id="c-note" placeholder="เช่น เปิดก่อน">${esc(c.note)}</textarea></label>
-    </div>
+    <div class="panel-head"><button type="button" class="backbtn" data-open-target="${esc(id)}">‹ กลับ</button><h2 id="ph">${i === null ? "เพิ่มทีมสู้" : "แก้ไขทีมสู้"}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
+    <p class="hint">สู้กับ ${esc(placed(t).map(h => char(h).name).join(" · "))}</p>
+    ${lineupEditorHTML(true)}
+    <label class="field"><span>คำแนะนำ / วิธีเล่นของทีม</span><textarea id="c-note" placeholder="เช่น เปิดก่อน">${esc(c.note)}</textarea></label>
     <div class="sec"><h3>รายละเอียดตัวละคร <small>เว้นว่างช่องที่ไม่รู้ได้</small></h3></div>
     <div id="heroFields" class="hcards"></div>
     <p class="err" id="formErr" hidden></p>
     <div class="actions"><button type="submit" class="btn primary" id="save">บันทึกทีมสู้</button></div>
   </form>`);
-  syncHeroFields();
+  state.onLineupChange = syncHeroFields;
+  renderLineup();
 }
 async function saveCounter(form){
   const t = teamById(form.dataset.id);
   const i = form.dataset.i === "" ? null : Number(form.dataset.i);
-  const f = readNames("c", "ทีมสู้");
-  const formation = $("#c-formation").value;
-  const slots = FORMATIONS[formation];
-  if(slots && (f.front.length > slots.F || f.back.length > slots.B))
-    throw new Error(`${formation} วางแถวหน้าได้ ${slots.F} ตัว แถวหลัง ${slots.B} ตัว`);
-  const heroes = readHeroes();
-  const counter = {...f, formation, subPet: $("#c-subPet").value.trim(), note: $("#c-note").value.trim(), heroes};
+  const counter = {...lineupFromDraft(), subPet: state.draft.subPet, note: $("#c-note").value.trim(), heroes: readHeroes()};
   const counters = [...t.counters];
   if(i === null) counters.push(counter); else counters[i] = counter;
   await api("PUT", teamUrl(t.id), strip({...t, counters}));
-  await loadTeams();
-  toast("บันทึกทีมสู้แล้ว");
+  await loadAll(); toast("บันทึกทีมสู้แล้ว");
   openCounter(t.id, i === null ? counters.length - 1 : i);
+}
+
+// ---------- character library
+function openLibrary(kind = "hero"){
+  const list = charsOf(kind);
+  showPanel(`<div class="panel wide" role="dialog" aria-modal="true" aria-labelledby="ph">
+    <div class="panel-head"><h2 id="ph">คลังตัวละคร</h2><button class="x" data-close aria-label="ปิด">✕</button></div>
+    <div class="sec"><div class="tabs seg">
+        <button type="button" data-lib-tab="hero" aria-pressed="${kind === "hero"}">ฮีโร่ (${charsOf("hero").length})</button>
+        <button type="button" data-lib-tab="pet" aria-pressed="${kind === "pet"}">สัตว์เลี้ยง (${charsOf("pet").length})</button></div>
+      <button class="btn primary" data-new-char="${kind}">+ เพิ่ม${kind === "hero" ? "ฮีโร่" : "สัตว์เลี้ยง"}</button></div>
+    ${list.length ? `<div class="lib-grid">${list.map(c => tileHTML(c.id, {button: {attrs: `data-edit-char="${esc(c.id)}"`}})).join("")}</div>`
+      : `<p class="empty">ยังไม่มี${kind === "hero" ? "ฮีโร่" : "สัตว์เลี้ยง"} กด “+ เพิ่ม” เพื่อเริ่ม</p>`}
+    <p class="hint">กดตัวละครเพื่อแก้ชื่อ ประเภท หรือเปลี่ยนรูป</p>
+  </div>`);
+}
+function openCharEditor(id, kind){
+  const c = id ? char(id) : {kind, name: "", type: "", img: null};
+  state.charImage = undefined;
+  showPanel(`<form class="panel" id="charForm" data-id="${id ? esc(id) : ""}" data-kind="${c.kind}" role="dialog" aria-modal="true" aria-labelledby="ph">
+    <div class="panel-head"><button type="button" class="backbtn" data-lib-tab="${c.kind}">‹ คลัง</button><h2 id="ph">${id ? "แก้ไข" : "เพิ่ม"}${c.kind === "hero" ? "ฮีโร่" : "สัตว์เลี้ยง"}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
+    <div class="fset">
+      <div class="preview"><div id="charPreview">${previewHTML(c, c.img)}</div>
+        <label class="field" style="flex:1;min-width:180px"><span>รูป (JPG, PNG หรือ WebP ระบบย่อให้อัตโนมัติ)</span><input id="charFile" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
+      <label class="field"><span>ชื่อ</span><input id="charName" value="${esc(c.name)}" maxlength="40" required></label>
+      ${c.kind === "hero" ? `<label class="field"><span>ประเภท</span><select id="charType"><option value="">เลือกประเภท</option>${HERO_TYPES.map(t => `<option${t === c.type ? " selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}
+    </div>
+    <p class="err" id="formErr" hidden></p>
+    <div class="actions">
+      ${id ? `<button type="button" class="btn danger" id="delChar">ลบ</button>` : ""}
+      <button type="submit" class="btn primary" id="save">บันทึก</button>
+    </div>
+  </form>`);
+}
+function previewHTML(c, img){
+  return faceHTML({...c, name: c.name || "?", type: c.type || "", img});
+}
+// Shrink to fit 240×240 and re-encode, so stored images stay small (~10–30 KB).
+async function encodeImage(file){
+  const bmp = await createImageBitmap(file);
+  const scale = Math.min(1, 240 / Math.max(bmp.width, bmp.height));
+  const canvas = Object.assign(document.createElement("canvas"), {width: Math.round(bmp.width * scale), height: Math.round(bmp.height * scale)});
+  canvas.getContext("2d").drawImage(bmp, 0, 0, canvas.width, canvas.height);
+  const blob = await new Promise(r => canvas.toBlob(r, "image/webp", 0.85));
+  if(blob.size > 300 * 1024) throw new Error("รูปยังใหญ่เกิน 300 KB หลังย่อแล้ว ลองใช้รูปอื่น");
+  const dataUrl = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(blob); });
+  return {type: blob.type, data: dataUrl.split(",")[1], preview: dataUrl};
+}
+async function saveChar(form){
+  const id = form.dataset.id, kind = form.dataset.kind;
+  const body = {kind, name: $("#charName").value.trim(), type: kind === "hero" ? $("#charType").value : ""};
+  if(!body.name) throw new Error("กรุณาใส่ชื่อ");
+  if(kind === "hero" && !body.type) throw new Error("กรุณาเลือกประเภท");
+  if(state.charImage) body.image = {type: state.charImage.type, data: state.charImage.data};
+  await api(id ? "PUT" : "POST", id ? "/api/characters/" + encodeURIComponent(id) : "/api/characters", body);
+  await loadAll(); toast("บันทึกแล้ว"); openLibrary(kind);
 }
 
 // ---------- deletes (two-tap confirm, no browser dialogs)
 function confirmTap(btn, label){
   if(btn.dataset.confirm === "1") return true;
-  btn.dataset.confirm = "1"; btn.textContent = label;
-  return false;
+  btn.dataset.confirm = "1"; btn.textContent = label; return false;
 }
 async function deleteCounter(id, i, btn){
   if(!confirmTap(btn, "กดอีกครั้งเพื่อยืนยันการลบ")) return;
   const t = teamById(id);
   await api("PUT", teamUrl(id), strip({...t, counters: t.counters.filter((_, k) => k !== i)}));
-  await loadTeams(); toast("ลบทีมสู้แล้ว"); openEnemy(id);
+  await loadAll(); toast("ลบทีมสู้แล้ว"); openTarget(id);
 }
-async function deleteEnemy(id, btn){
+async function deleteTarget(id, btn){
   if(!confirmTap(btn, "กดอีกครั้ง: ลบทีมนี้และทีมสู้ทั้งหมด")) return;
   await api("DELETE", teamUrl(id));
-  await loadTeams(); closeSheet(); toast("ลบทีมแล้ว");
+  await loadAll(); closeSheet(); toast("ลบทีมแล้ว");
+}
+async function deleteChar(id, btn){
+  if(!confirmTap(btn, "กดอีกครั้งเพื่อยืนยันการลบ")) return;
+  const kind = char(id).kind;
+  await api("DELETE", "/api/characters/" + encodeURIComponent(id));
+  await loadAll(); toast("ลบแล้ว"); openLibrary(kind);
 }
 
 // ---------- api
@@ -456,16 +599,20 @@ async function api(method, path, body){
   if(!res.ok) throw new Error(data.error || `เซิร์ฟเวอร์ตอบกลับผิดพลาด (${res.status}) ลองใหม่อีกครั้ง`);
   return data;
 }
-async function loadTeams(){
-  try { state.teams = await api("GET", "/api/teams"); render(); }
-  catch(e){ $("#grid").innerHTML = `<p class="empty">โหลดข้อมูลไม่สำเร็จ: ${esc(e.message)}</p>`; }
+async function loadAll(){
+  try {
+    const [chars, teams] = await Promise.all([api("GET", "/api/characters"), api("GET", "/api/teams")]);
+    state.chars = new Map(chars.map(c => [c.id, c]));
+    state.teams = teams;
+    render();
+  } catch(e){ $("#grid").innerHTML = `<p class="empty">โหลดข้อมูลไม่สำเร็จ: ${esc(e.message)}</p>`; }
 }
 
 // ---------- admin
 const PW_KEY = "47lovepiya-admin";
 function setAdmin(pw){
   state.password = pw; state.canWrite = !!pw;
-  $("#add").hidden = !pw;
+  $("#add").hidden = !pw; $("#library").hidden = !pw;
   $("#login").textContent = pw ? "ออกจากระบบ" : "แอดมิน";
   try { pw ? sessionStorage.setItem(PW_KEY, pw) : sessionStorage.removeItem(PW_KEY); } catch {}
   render();
@@ -494,7 +641,6 @@ function showPanel(html){
 }
 function closeSheet(){ $("#sheet").hidden = true; $("#sheet").innerHTML = ""; }
 function showError(e){ const el = $("#formErr"); if(!el) throw e; el.textContent = e.message; el.hidden = false; }
-// Runs an async action from a button or form; shows its error in the open panel.
 async function run(btn, fn){
   if(btn) btn.disabled = true;
   try { await fn(); }
@@ -504,8 +650,9 @@ async function run(btn, fn){
 // ---------- events
 $("#q").addEventListener("input", e => { state.q = e.target.value; render(); });
 $("#filters").addEventListener("click", e => { const b = e.target.closest("[data-type]"); if(b){ state.type = b.dataset.type; render(); } });
-$("#grid").addEventListener("click", e => { const b = e.target.closest("[data-open-enemy]"); if(b) openEnemy(b.dataset.openEnemy); });
-$("#add").addEventListener("click", () => openEnemyEditor(null));
+$("#grid").addEventListener("click", e => { const b = e.target.closest("[data-open-target]"); if(b) openTarget(b.dataset.openTarget); });
+$("#add").addEventListener("click", () => openTargetEditor(null));
+$("#library").addEventListener("click", () => openLibrary("hero"));
 $("#login").addEventListener("click", () => state.password ? setAdmin(null) : openLogin());
 $("#sheet").addEventListener("click", e => {
   const t = e.target;
@@ -513,30 +660,47 @@ $("#sheet").addEventListener("click", e => {
   const b = t.closest("button");
   if(!b) return;
   const d = b.dataset, i = d.i === undefined ? null : Number(d.i);
-  if(d.openEnemy) return openEnemy(d.openEnemy);
+  if(d.slot){ state.active = state.active === d.slot ? null : d.slot; state.pickQ = ""; renderLineup(); if(state.active) $("#pickQ").focus(); return; }
+  if(d.pick !== undefined) return pick(d.pick);
+  if(d.pickClose !== undefined){ state.active = null; return renderLineup(); }
+  if(d.formation){ state.draft = reflow(state.draft, d.formation); state.active = null; return renderLineup(); }
+  if(d.openTarget) return openTarget(d.openTarget);
   if(d.openCounter) return openCounter(d.openCounter, i);
-  if(d.editEnemy) return openEnemyEditor(d.editEnemy);
+  if(d.editTarget) return openTargetEditor(d.editTarget);
   if(d.addCounter) return openCounterEditor(d.addCounter, null);
   if(d.editCounter) return openCounterEditor(d.editCounter, i);
-  if(d.delCounter) return run(b.dataset.confirm === "1" ? b : null, () => deleteCounter(d.delCounter, i, b));
-  if(b.id === "delEnemy") return run(b.dataset.confirm === "1" ? b : null, () => deleteEnemy($("#enemyForm").dataset.id, b));
+  if(d.libTab) return openLibrary(d.libTab);
+  if(d.newChar) return openCharEditor(null, d.newChar);
+  if(d.editChar) return openCharEditor(d.editChar);
+  const armed = b.dataset.confirm === "1" ? b : null;
+  if(d.delCounter) return run(armed, () => deleteCounter(d.delCounter, i, b));
+  if(b.id === "delTarget") return run(armed, () => deleteTarget($("#targetForm").dataset.id, b));
+  if(b.id === "delChar") return run(armed, () => deleteChar($("#charForm").dataset.id, b));
 });
-$("#sheet").addEventListener("input", e => { if(e.target.matches("#counterForm [data-names]")) syncHeroFields(); });
+$("#sheet").addEventListener("input", e => {
+  if(e.target.id === "pickQ"){ state.pickQ = e.target.value; renderPickGrid(); }
+});
+$("#sheet").addEventListener("change", e => {
+  if(e.target.id !== "charFile" || !e.target.files[0]) return;
+  run(null, async () => {
+    state.charImage = await encodeImage(e.target.files[0]);
+    const form = $("#charForm");
+    $("#charPreview").innerHTML = previewHTML({kind: form.dataset.kind, name: $("#charName").value, type: form.dataset.kind === "hero" ? $("#charType").value : ""}, state.charImage.preview);
+  });
+});
 $("#sheet").addEventListener("submit", e => {
   e.preventDefault();
-  const f = e.target, btn = $("#save");
-  const action = {loginForm: login, enemyForm: () => saveEnemy(f), counterForm: () => saveCounter(f)}[f.id];
+  const f = e.target;
+  const action = {loginForm: login, targetForm: () => saveTarget(f), counterForm: () => saveCounter(f), charForm: () => saveChar(f)}[f.id];
   if(!action) throw new Error("ไม่รู้จักฟอร์ม " + f.id);
-  run(btn, action);
+  run($("#save"), action);
 });
 document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("#sheet").hidden) closeSheet(); });
 
-$("#heroList").innerHTML = Object.keys(HEROES).map(n => `<option value="${esc(n)}">`).join("");
-$("#petList").innerHTML = PETS.map(n => `<option value="${esc(n)}">`).join("");
 let savedPw = null;
 try { savedPw = sessionStorage.getItem(PW_KEY); } catch {}
 setAdmin(savedPw);
-loadTeams();
+loadAll();
 </script>
 </body>
 </html>

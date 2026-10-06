@@ -1,4 +1,6 @@
-import { handle, json, requireAdmin, normalizeTeam, readBody, rowToTeam } from "../../../lib/team.js";
+import { handle, json, requireAdmin, readBody } from "../../../lib/http.js";
+import { normalizeTeam, rowToTeam } from "../../../lib/team.js";
+import { characterKinds } from "../../../lib/characters.js";
 
 // GET /api/teams — everyone
 export const onRequestGet = handle(async ({ env }) => {
@@ -9,7 +11,7 @@ export const onRequestGet = handle(async ({ env }) => {
 // POST /api/teams — admin
 export const onRequestPost = handle(async ({ request, env }) => {
   requireAdmin(request, env);
-  const team = normalizeTeam(await readBody(request));
+  const team = normalizeTeam(await readBody(request), await characterKinds(env.DB));
   const id = crypto.randomUUID();
   const now = Date.now();
   await env.DB.prepare("INSERT INTO teams (id, data, created_at, updated_at) VALUES (?, ?, ?, ?)")

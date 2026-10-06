@@ -1,4 +1,4 @@
-import { handle, json, requireAdmin } from "../../lib/team.js";
+import { handle, json, requireAdmin } from "../../lib/http.js";
 
 // POST /api/auth — checks the admin password
 export const onRequestPost = handle(async ({ request, env }) => {
