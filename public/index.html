@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>47LOVEPIYA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@600;700&family=Noto+Sans+Thai:wght@400;500;600&display=swap">
+<style>
+/* Layout: sticky app bar with add button, search + type chips, card grid of enemy formations; sheet = detail or editor */
+:root{
+  --bg:#fbfafb; --surface:#ffffff; --ink:#1d1a1f; --muted:#7a7380; --line:#ebe6ec;
+  --rose:#e2456b; --rose-soft:#fdeef2; --rose-line:#f6cfd9;
+  --tank:#8a6a2c; --tank-bg:#fbf3e3; --magic:#2f6fc9; --magic-bg:#e8f1fd; --phys:#c9382f; --phys-bg:#fdeceb; --etc:#7a4fc1; --etc-bg:#f1ebfc; --none:#7a7380; --none-bg:#f1eff2;
+  --display:"Bai Jamjuree","Noto Sans Thai",system-ui,sans-serif;
+  --body:"Noto Sans Thai",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141216; --surface:#1d1a20; --ink:#f1edf3; --muted:#a39aa8; --line:#2e2a33;
+  --rose:#ff6e8f; --rose-soft:#2c1a21; --rose-line:#4a2632;
+  --tank:#e3c27f; --tank-bg:#2c2416; --magic:#7fb0f5; --magic-bg:#16233a; --phys:#f48b84; --phys-bg:#331a19; --etc:#b896f2; --etc-bg:#251c36; --none:#a39aa8; --none-bg:#26222a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141216; --surface:#1d1a20; --ink:#f1edf3; --muted:#a39aa8; --line:#2e2a33;
+  --rose:#ff6e8f; --rose-soft:#2c1a21; --rose-line:#4a2632;
+  --tank:#e3c27f; --tank-bg:#2c2416; --magic:#7fb0f5; --magic-bg:#16233a; --phys:#f48b84; --phys-bg:#331a19; --etc:#b896f2; --etc-bg:#251c36; --none:#a39aa8; --none-bg:#26222a; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px}
+[hidden]{display:none!important}
+:root{padding-bottom:env(safe-area-inset-bottom,0px)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+.wrap{max-width:980px;margin:0 auto;padding-inline:16px}
+.bar{display:flex;align-items:center;gap:10px;padding-block:12px}
+.bar h1{font-family:var(--display);font-size:20px;margin:0;letter-spacing:.02em}
+.bar small{color:var(--muted);font-size:12px;flex:1}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:7px 14px;font-weight:600;font-size:13px}
+.btn.primary{background:var(--rose);border-color:var(--rose);color:var(--surface)}
+.btn.danger{color:var(--phys);border-color:var(--phys-bg)}
+.btn:disabled{opacity:.5;cursor:default}
+main{padding-block:20px 48px}
+.search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:10px 16px}
+.search input{border:0;background:none;flex:1;min-width:0;font:inherit;color:var(--ink);outline:none}
+.filters{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-block:14px 18px}
+.filters .lbl{color:var(--muted);font-size:12px;margin-right:4px}
+.filters .count{margin-left:auto;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 12px;font-size:12px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.t-ถึก{color:var(--tank);border-color:currentColor}.chip.t-เวทย์{color:var(--magic);border-color:currentColor}
+.chip.t-กายภาพ{color:var(--phys);border-color:currentColor}.chip.t-อื่นๆ{color:var(--etc);border-color:currentColor}
+.chip.t-ถึก[aria-pressed="true"]{background:var(--tank);color:var(--surface)}.chip.t-เวทย์[aria-pressed="true"]{background:var(--magic);color:var(--surface)}
+.chip.t-กายภาพ[aria-pressed="true"]{background:var(--phys);color:var(--surface)}.chip.t-อื่นๆ[aria-pressed="true"]{background:var(--etc);color:var(--surface)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.tag{background:var(--rose-soft);color:var(--rose);font-size:11px;font-weight:600;border-radius:999px;padding:2px 10px}
+.card-top .n{font-size:12px;color:var(--muted)}
+.formation{display:grid;grid-template-columns:1fr auto;background:var(--rose-soft);border:1px solid var(--rose-line);border-radius:10px;min-height:200px}
+.rows{display:flex;flex-direction:column;justify-content:center;gap:10px;padding:12px 8px}
+.row{display:flex;align-items:center;justify-content:center;gap:8px;position:relative;min-height:20px}
+.row .pos{position:absolute;right:-4px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;background:var(--surface);border:1.5px solid var(--rose);color:var(--rose)}
+.row.front .pos{border-color:var(--magic);color:var(--magic)}
+.petcol{border-left:1px solid var(--rose-line);padding:12px 10px;display:grid;place-items:center}
+.hero{display:flex;flex-direction:column;align-items:center;gap:3px;width:68px}
+.portrait{width:60px;height:60px;border-radius:8px;display:grid;place-items:center;font-family:var(--display);font-size:20px;font-weight:700;position:relative;overflow:hidden;border:2px solid currentColor}
+.portrait .ty{position:absolute;left:2px;top:2px;font-size:9px;line-height:1;padding:2px 3px;border-radius:3px;background:currentColor}
+.portrait .ty span{color:var(--surface)}
+.ty-ถึก{color:var(--tank);background:var(--tank-bg)}.ty-เวทย์{color:var(--magic);background:var(--magic-bg)}
+.ty-กายภาพ{color:var(--phys);background:var(--phys-bg)}.ty-สนับสนุน{color:var(--etc);background:var(--etc-bg)}
+.ty-none{color:var(--none);background:var(--none-bg)}
+.hero .nm{font-size:12px;color:var(--ink);text-align:center;line-height:1.2;word-break:break-word}
+.pet .portrait{border-radius:50%;color:var(--rose);background:var(--surface)}
+.card-foot{border-top:1px solid var(--line);padding-top:8px;display:flex;justify-content:flex-end}
+.more{border:0;background:none;color:var(--muted);font-size:12px;padding:4px 0}
+.more:hover{color:var(--rose)}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:48px 16px;line-height:1.7}
+.sheet{position:fixed;inset:0;z-index:10;background:color-mix(in srgb,var(--ink) 45%,transparent);display:flex;justify-content:center;align-items:flex-start;overflow-y:auto;padding:max(24px,env(safe-area-inset-top,0px)) 16px 24px}
+.panel{background:var(--bg);border-radius:16px;width:100%;max-width:640px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.panel-head h2{font-family:var(--display);font-size:17px;margin:0;text-wrap:balance}
+.x{border:1px solid var(--line);background:var(--surface);border-radius:8px;width:32px;height:32px;flex:none}
+.sec{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:4px 0 -4px}
+.counter{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.counter .formation{background:var(--magic-bg);border-color:transparent;min-height:0}
+.counter .petcol{border-left-color:var(--line)}
+.note{margin:0;line-height:1.6}
+.actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+/* editor */
+.fset{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:10px}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field span{font-size:12px;color:var(--muted)}
+.field input,.field select,.field textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.field textarea{resize:vertical;min-height:56px}
+.hint{font-size:12px;color:var(--muted);margin:0}
+.err{color:var(--phys);font-size:13px;margin:0}
+.fset-head{display:flex;justify-content:space-between;align-items:center}
+.fset-head b{font-size:13px}
+.linkbtn{border:0;background:none;color:var(--phys);font-size:12px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:13px;z-index:20}
+@media (max-width:420px){.hero{width:60px}.portrait{width:52px;height:52px;font-size:17px}.bar small{display:none}.bar h1{flex:1}}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}.card:hover{border-color:var(--rose-line)}}
+</style>
+</head>
+<body>
+
+<header><div class="wrap bar"><h1>47LOVEPIYA</h1><small>ฐานข้อมูลทีมแก้</small><button class="btn" id="login">แอดมิน</button><button class="btn primary" id="add" hidden>+ เพิ่มทีม</button></div></header>
+<main class="wrap">
+  <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="q" type="search" placeholder="ค้นหาทีมศัตรู... เช่น ยูนอน อีวูอี" aria-label="ค้นหาตัวละคร"></label>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid"><p class="empty">กำลังโหลดทีม...</p></div>
+</main>
+<datalist id="heroList"></datalist>
+<datalist id="petList"></datalist>
+<div class="sheet" id="sheet" hidden></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// Known heroes set the color of a tile. A name not listed here still works and shows grey.
+const HEROES = {
+  "ยูนอน":"กายภาพ","โดยอง":"กายภาพ","อีวูอี":"สนับสนุน","ยอนฮี":"เวทย์","ไอลีน":"ถึก","อาริส":"สนับสนุน",
+  "แร็ดคริด":"ถึก","โอบิก":"เวทย์","ซอริน":"กายภาพ","เดลโลนส์":"กายภาพ","สกัส":"เวทย์","รูดี้":"ถึก",
+  "เรเชล":"เวทย์","คริส":"กายภาพ","เอซ":"สนับสนุน"
+};
+const PETS = ["ปุยหิมะ","แมวทอง","นกเพลิง","อีกาดำ"];
+const TEAM_TYPES = ["ถึก","เวทย์","กายภาพ","อื่นๆ"];
+
+const state = {q:"", type:"ทั้งหมด", teams:null, canWrite:false, password:null};
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const members = t => [...t.back, ...t.front];
+const splitNames = s => s.split(/[,，]/).map(x => x.trim()).filter(Boolean);
+
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => t.hidden = true, 2200); }
+
+// ---- rendering
+function heroHTML(name){
+  const ty = HEROES[name];
+  const cls = ty ? "ty-" + ty : "ty-none";
+  const badge = ty ? `<span class="ty"><span>${ty[0]}</span></span>` : "";
+  return `<div class="hero"><div class="portrait ${cls}">${badge}${esc([...name][0])}</div><span class="nm">${esc(name)}</span></div>`;
+}
+const petHTML = name => `<div class="hero pet"><div class="portrait">${esc([...name][0])}</div><span class="nm">${esc(name)}</span></div>`;
+function formationHTML(t){
+  return `<div class="formation"><div class="rows">
+    <div class="row back">${t.back.map(heroHTML).join("")}<span class="pos" title="แถวหลัง">B</span></div>
+    <div class="row front">${t.front.map(heroHTML).join("")}<span class="pos" title="แถวหน้า">F</span></div>
+  </div><div class="petcol">${t.pet ? petHTML(t.pet) : ""}</div></div>`;
+}
+function matches(t){
+  if(state.type !== "ทั้งหมด" && t.type !== state.type) return false;
+  const q = state.q.trim();
+  return !q || [...members(t), ...t.counters.flatMap(members)].some(n => n.includes(q));
+}
+function renderFilters(){
+  const f = $("#filters");
+  f.innerHTML = `<span class="lbl">ประเภททีม</span>` + ["ทั้งหมด", ...TEAM_TYPES].map(ty =>
+    `<button class="chip${ty === "ทั้งหมด" ? "" : " t-" + ty}" data-type="${ty}" aria-pressed="${state.type === ty}">${ty}</button>`).join("")
+    + `<span class="count">ทั้งหมด ${state.teams ? state.teams.filter(matches).length : 0} รายการ</span>`;
+}
+function render(){
+  renderFilters();
+  if(state.teams === null) return;
+  const list = state.teams.filter(matches);
+  const grid = $("#grid");
+  if(!state.teams.length){
+    grid.innerHTML = `<p class="empty">ยังไม่มีทีม${state.canWrite ? "<br>กด “+ เพิ่มทีม” ด้านบนเพื่อเพิ่มทีมแรก" : ""}</p>`;
+    return;
+  }
+  grid.innerHTML = list.length ? list.map(t => `
+    <article class="card">
+      <div class="card-top"><span class="tag">ทีมที่ต้องการตี</span><span class="n">${t.counters.length} ทีมแก้</span></div>
+      ${formationHTML(t)}
+      <div class="card-foot"><button class="more" data-id="${esc(t.id)}">ดูเพิ่ม ›</button></div>
+    </article>`).join("") : `<p class="empty">ไม่พบทีมที่ตรงกับ “${esc(state.q)}”</p>`;
+}
+
+// ---- detail
+function openDetail(id){
+  const t = state.teams.find(x => x.id === id);
+  if(!t) throw new Error("ไม่พบทีม " + id);
+  $("#sheet").innerHTML = `<div class="panel" role="dialog" aria-modal="true" aria-labelledby="dt">
+    <div class="panel-head"><h2 id="dt">ทีมแก้ ${esc(members(t).join(" · "))}</h2><button class="x" data-close aria-label="ปิด">✕</button></div>
+    <p class="sec">ทีมที่ต้องการตี · ${esc(t.type)}</p>${formationHTML(t)}
+    <p class="sec">ทีมแก้ ${t.counters.length} ทีม</p>
+    ${t.counters.map((c,k) => `<div class="counter"><div class="card-top"><span class="tag">ทีมแก้ ${k+1}</span></div>${formationHTML(c)}${c.note ? `<p class="note">${esc(c.note)}</p>` : ""}</div>`).join("")}
+    ${state.canWrite ? `<div class="actions"><button class="btn" data-edit="${esc(t.id)}">แก้ไขทีมนี้</button></div>` : ""}
+  </div>`;
+  showSheet();
+}
+
+// ---- editor
+function formationFields(prefix, f){
+  return `<div class="fgrid">
+    <label class="field"><span>แถวหลัง (B)</span><input id="${prefix}-back" list="heroList" value="${esc(f.back.join(", "))}" placeholder="ยูนอน, โดยอง"></label>
+    <label class="field"><span>แถวหน้า (F)</span><input id="${prefix}-front" list="heroList" value="${esc(f.front.join(", "))}" placeholder="อีวูอี"></label>
+    <label class="field"><span>สัตว์เลี้ยง</span><input id="${prefix}-pet" list="petList" value="${esc(f.pet || "")}" placeholder="ปุยหิมะ"></label>
+  </div>`;
+}
+function counterBlock(k, c){
+  return `<div class="fset" data-counter="${k}">
+    <div class="fset-head"><b>ทีมแก้</b><button type="button" class="linkbtn" data-remove-counter>ลบทีมแก้นี้</button></div>
+    ${formationFields("c" + k, c)}
+    <label class="field"><span>วิธีเล่น / หมายเหตุ</span><textarea id="c${k}-note">${esc(c.note || "")}</textarea></label>
+  </div>`;
+}
+const blankFormation = () => ({back:[], front:[], pet:"", note:""});
+let counterSeq = 0;
+
+function openEditor(id){
+  const t = id ? state.teams.find(x => x.id === id) : {type:"กายภาพ", ...blankFormation(), counters:[blankFormation()]};
+  if(!t) throw new Error("ไม่พบทีม " + id);
+  counterSeq = 0;
+  $("#sheet").innerHTML = `<form class="panel" id="editor" role="dialog" aria-modal="true" aria-labelledby="et" data-id="${id ? esc(id) : ""}">
+    <div class="panel-head"><h2 id="et">${id ? "แก้ไขทีม" : "เพิ่มทีมใหม่"}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
+    <p class="hint">ใส่ชื่อตัวละครคั่นด้วยจุลภาค ( , ) แต่ละแถวใส่ได้ 0–3 ตัว รวมทั้งทีม 1–5 ตัว</p>
+    <div class="fset">
+      <div class="fset-head"><b>ทีมที่ต้องการตี</b></div>
+      <label class="field"><span>ประเภททีม</span><select id="e-type">${TEAM_TYPES.map(ty => `<option${ty === t.type ? " selected" : ""}>${ty}</option>`).join("")}</select></label>
+      ${formationFields("e", t)}
+    </div>
+    <div id="counters">${t.counters.map(c => counterBlock(counterSeq++, c)).join("")}</div>
+    <button type="button" class="btn" id="addCounter">+ เพิ่มทีมแก้</button>
+    <p class="err" id="formErr" hidden></p>
+    <div class="actions">
+      ${id ? `<button type="button" class="btn danger" id="del">ลบทีม</button>` : ""}
+      <button type="button" class="btn" data-close>ยกเลิก</button>
+      <button type="submit" class="btn primary" id="save">บันทึก</button>
+    </div>
+  </form>`;
+  showSheet();
+}
+
+function readFormation(prefix, label){
+  const f = {back: splitNames($(`#${prefix}-back`).value), front: splitNames($(`#${prefix}-front`).value), pet: $(`#${prefix}-pet`).value.trim()};
+  const n = f.back.length + f.front.length;
+  if(n === 0) throw new Error(`${label}: ต้องมีตัวละครอย่างน้อย 1 ตัว`);
+  if(f.back.length > 3 || f.front.length > 3) throw new Error(`${label}: แต่ละแถวใส่ได้ไม่เกิน 3 ตัว`);
+  if(n > 5) throw new Error(`${label}: รวมทั้งทีมไม่เกิน 5 ตัว`);
+  return f;
+}
+function readForm(){
+  const team = {type: $("#e-type").value, ...readFormation("e", "ทีมที่ต้องการตี")};
+  const blocks = [...document.querySelectorAll("[data-counter]")];
+  if(!blocks.length) throw new Error("ต้องมีทีมแก้อย่างน้อย 1 ทีม");
+  team.counters = blocks.map((b, i) => {
+    const k = b.dataset.counter;
+    return {...readFormation("c" + k, `ทีมแก้ ${i+1}`), note: $(`#c${k}-note`).value.trim()};
+  });
+  return team;
+}
+
+async function save(form){
+  const err = $("#formErr");
+  let team;
+  try { team = readForm(); } catch(e){ err.textContent = e.message; err.hidden = false; return; }
+  err.hidden = true;
+  const btn = $("#save"); btn.disabled = true; btn.textContent = "กำลังบันทึก...";
+  const id = form.dataset.id;
+  try {
+    await api(id ? "PUT" : "POST", id ? "/api/teams/" + encodeURIComponent(id) : "/api/teams", team);
+    closeSheet(); toast("บันทึกแล้ว"); loadTeams();
+  } catch(e){
+    err.textContent = e.message; err.hidden = false;
+    btn.disabled = false; btn.textContent = "บันทึก";
+  }
+}
+async function removeTeam(id, btn){
+  if(btn.dataset.confirm !== "1"){ btn.dataset.confirm = "1"; btn.textContent = "กดอีกครั้งเพื่อยืนยันการลบ"; return; }
+  btn.disabled = true;
+  try { await api("DELETE", "/api/teams/" + encodeURIComponent(id)); closeSheet(); toast("ลบทีมแล้ว"); loadTeams(); }
+  catch(e){ const err = $("#formErr"); err.textContent = e.message; err.hidden = false; btn.disabled = false; }
+}
+
+// ---- api
+async function api(method, path, body){
+  const headers = {"content-type":"application/json"};
+  if(state.password) headers.authorization = "Bearer " + state.password;
+  const res = await fetch(path, {method, headers, body: body === undefined ? undefined : JSON.stringify(body)});
+  const data = await res.json().catch(() => ({}));
+  if(res.status === 401) logout();
+  if(!res.ok) throw new Error(data.error || `เซิร์ฟเวอร์ตอบกลับผิดพลาด (${res.status}) ลองใหม่อีกครั้ง`);
+  return data;
+}
+async function loadTeams(){
+  try { state.teams = await api("GET", "/api/teams"); render(); }
+  catch(e){ $("#grid").innerHTML = `<p class="empty">โหลดข้อมูลไม่สำเร็จ: ${esc(e.message)}</p>`; }
+}
+
+// ---- admin
+const PW_KEY = "47lovepiya-admin";
+function setAdmin(pw){
+  state.password = pw; state.canWrite = !!pw;
+  $("#add").hidden = !pw;
+  $("#login").textContent = pw ? "ออกจากระบบ" : "แอดมิน";
+  try { pw ? sessionStorage.setItem(PW_KEY, pw) : sessionStorage.removeItem(PW_KEY); } catch {}
+  render();
+}
+function logout(){ setAdmin(null); }
+function openLogin(){
+  $("#sheet").innerHTML = `<form class="panel" id="loginForm" role="dialog" aria-modal="true" aria-labelledby="lt" style="max-width:380px">
+    <div class="panel-head"><h2 id="lt">เข้าสู่ระบบแอดมิน</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
+    <label class="field"><span>รหัสผ่าน</span><input id="pw" type="password" autocomplete="current-password" required></label>
+    <p class="err" id="formErr" hidden></p>
+    <div class="actions"><button type="submit" class="btn primary" id="save">เข้าสู่ระบบ</button></div>
+  </form>`;
+  showSheet(); $("#pw").focus();
+}
+async function login(){
+  const pw = $("#pw").value, err = $("#formErr");
+  state.password = pw;
+  try { await api("POST", "/api/auth"); setAdmin(pw); closeSheet(); toast("เข้าสู่ระบบแล้ว"); }
+  catch(e){ state.password = null; err.textContent = e.message; err.hidden = false; }
+}
+
+// ---- sheet
+function showSheet(){ const s = $("#sheet"); s.hidden = false; (s.querySelector("input,select,[data-close]")).focus(); }
+function closeSheet(){ $("#sheet").hidden = true; $("#sheet").innerHTML = ""; }
+
+// ---- events
+$("#q").addEventListener("input", e => { state.q = e.target.value; render(); });
+$("#filters").addEventListener("click", e => { const b = e.target.closest("[data-type]"); if(b){ state.type = b.dataset.type; render(); } });
+$("#grid").addEventListener("click", e => { const b = e.target.closest(".more"); if(b) openDetail(b.dataset.id); });
+$("#add").addEventListener("click", () => openEditor(null));
+$("#sheet").addEventListener("click", e => {
+  if(e.target.id === "sheet" || e.target.closest("[data-close]")) return closeSheet();
+  const ed = e.target.closest("[data-edit]"); if(ed) return openEditor(ed.dataset.edit);
+  if(e.target.id === "addCounter"){ $("#counters").insertAdjacentHTML("beforeend", counterBlock(counterSeq++, blankFormation())); return; }
+  if(e.target.closest("[data-remove-counter]")){ e.target.closest("[data-counter]").remove(); return; }
+  if(e.target.id === "del") removeTeam($("#editor").dataset.id, e.target);
+});
+$("#sheet").addEventListener("submit", e => { e.preventDefault(); e.target.id === "loginForm" ? login() : save(e.target); });
+$("#login").addEventListener("click", () => state.password ? logout() : openLogin());
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("#sheet").hidden) closeSheet(); });
+
+$("#heroList").innerHTML = Object.keys(HEROES).map(n => `<option value="${esc(n)}">`).join("");
+$("#petList").innerHTML = PETS.map(n => `<option value="${esc(n)}">`).join("");
+let savedPw = null;
+try { savedPw = sessionStorage.getItem(PW_KEY); } catch {}
+setAdmin(savedPw);
+loadTeams();
+</script>
+</body>
+</html>
