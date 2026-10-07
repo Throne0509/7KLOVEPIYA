@@ -61,12 +61,12 @@ main{padding-block:20px 48px}
 button.skill{cursor:pointer}button.skill:hover{border-color:var(--rose)}
 .loop{display:flex;flex-wrap:wrap;gap:6px}
 .lpal{display:flex;flex-wrap:wrap;gap:14px}
-.lp{display:grid;grid-template-columns:auto auto;gap:4px;justify-items:center}
+.lp{display:grid;grid-template-columns:repeat(3,auto);gap:4px;justify-items:center}
 .lp .nm{grid-column:1 / -1;font-size:11px}
-.skillup{display:flex;gap:16px;flex-wrap:wrap}
+.skillup{display:flex;gap:12px;flex-wrap:wrap}
 .su{display:flex;flex-direction:column;align-items:flex-start;gap:4px;font-size:12px;color:var(--muted)}
 .su .skill{--s:52px}.su b{font-weight:600;color:var(--ink)}
-.su input{font-size:12px;max-width:200px}
+.su input{font-size:12px;max-width:150px}
 /* boss cards and detail */
 .bhead{display:flex;gap:12px;align-items:center;min-width:0}
 .bhead .bt{min-width:0}
@@ -248,7 +248,10 @@ const BOSS_ROOMS = 2, BOSS_MAX_HEROES = 5, MAX_LOOP = 40;
 const ROOM_LABEL = ["ห้องแรก · ทีม 1", "ห้องสอง · ทีม 2"];
 // Boss and castle guides share one data shape; `mode` says which tab lists them.
 const MODE_LABEL = {boss: "บอส", castle: "ปราสาท"};
-const SKILL_LABEL = {top: "สกิลบน", bottom: "สกิลล่าง"};
+// must match SKILL_SLOTS in lib/characters.js
+const SKILL_SLOTS = ["top", "bottom", "awake"];
+const SKILL_LABEL = {top: "สกิลบน", bottom: "สกิลล่าง", awake: "สกิลอเวค"};
+const SKILL_SHORT = {top: "บน", bottom: "ล่าง", awake: "อเวค"};
 const KIND_LABEL = {hero: "ฮีโร่", pet: "สัตว์เลี้ยง", ring: "แหวน"};
 const STATS = [ // [key, label, unit]
   ["atk","พลังโจมตี",""],["def","ป้องกัน",""],["hp","HP",""],["spd","สปีด",""],
@@ -653,7 +656,7 @@ function openCharEditor(id, kind){
         <label class="field" style="flex:1;min-width:180px"><span>รูป (JPG, PNG หรือ WebP ระบบย่อให้อัตโนมัติ)</span><input id="charFile" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
       <label class="field"><span>ชื่อ</span><input id="charName" value="${esc(c.name)}" maxlength="40" required></label>
       ${c.kind === "hero" ? `<label class="field"><span>ประเภท</span><select id="charType"><option value="">เลือกประเภท</option>${HERO_TYPES.map(t => `<option${t === c.type ? " selected" : ""}>${t}</option>`).join("")}</select></label>
-      <div class="field"><span>รูปสกิล (ใช้ในลูปสกิลตีบอส)</span><div class="skillup">${["top", "bottom"].map(sl => `
+      <div class="field"><span>รูปสกิล (ใช้ในลูปสกิลตีบอส)</span><div class="skillup">${SKILL_SLOTS.map(sl => `
         <label class="su"><span id="skillPrev-${sl}">${skillPreviewHTML(c.skills?.[sl])}</span><b>${SKILL_LABEL[sl]}</b>
           <input type="file" data-skill-file="${sl}" accept="image/png,image/jpeg,image/webp"></label>`).join("")}</div></div>` : ""}
     </div>
@@ -705,7 +708,7 @@ const dash = `<span class="dash">—</span>`;
 // A hero's upper or lower skill. Without an uploaded icon it shows the hero's initial and บน/ล่าง.
 function skillIconHTML(hero, sl, attrs = "", step = null){
   const c = char(hero), img = c.skills[sl], label = `${c.name} ${SKILL_LABEL[sl]}`;
-  const inner = img ? `<img src="${esc(img)}" alt="">` : `${esc([...c.name][0])}<span class="sl">${sl === "top" ? "บน" : "ล่าง"}</span>`;
+  const inner = img ? `<img src="${esc(img)}" alt="">` : `${esc([...c.name][0])}<span class="sl">${SKILL_SHORT[sl]}</span>`;
   const stepHTML = step === null ? "" : `<span class="step">${step}</span>`;
   const cls = `skill${img ? "" : " noimg ty-" + c.type}`;
   return attrs
@@ -839,7 +842,7 @@ function renderLoopEditor(){
   const d = state.draft, ids = placed(d);
   d.loop = d.loop.filter(k => ids.includes(k.hero));
   $("#loopPalette").innerHTML = ids.length
-    ? ids.map(id => `<div class="lp">${["top", "bottom"].map(sl => skillIconHTML(id, sl, `data-loop-add="${esc(id)}|${sl}"`)).join("")}<span class="nm">${esc(char(id).name)}</span></div>`).join("")
+    ? ids.map(id => `<div class="lp">${SKILL_SLOTS.map(sl => skillIconHTML(id, sl, `data-loop-add="${esc(id)}|${sl}"`)).join("")}<span class="nm">${esc(char(id).name)}</span></div>`).join("")
     : `<p class="hint">วางฮีโร่ลงช่องก่อน สกิลของทีมจะขึ้นที่นี่</p>`;
   $("#loopStrip").innerHTML = d.loop.length
     ? d.loop.map((k, i) => skillIconHTML(k.hero, k.s, `data-loop-del="${i}"`, i + 1)).join("")
