@@ -3,10 +3,16 @@ import { normalizeCharacter, rowToCharacter, isUniqueViolation, UNIQUE_NAME_MSG 
 
 // GET /api/characters — everyone (no image bytes; each has an img URL)
 export const onRequestGet = handle(async ({ env }) => {
-  const { results } = await env.DB.prepare(
-    "SELECT id, kind, name, type, image_type, updated_at FROM characters ORDER BY kind, name"
-  ).all();
-  return json(results.map(rowToCharacter));
+  const [chars, skillRows] = await env.DB.batch([
+    env.DB.prepare("SELECT id, kind, name, type, image_type, updated_at FROM characters ORDER BY kind, name"),
+    env.DB.prepare("SELECT hero_id, slot, updated_at FROM hero_skills"),
+  ]);
+  const skills = new Map();
+  for (const r of skillRows.results) {
+    if (!skills.has(r.hero_id)) skills.set(r.hero_id, new Map());
+    skills.get(r.hero_id).set(r.slot, r.updated_at);
+  }
+  return json(chars.results.map((r) => rowToCharacter(r, skills)));
 });
 
 // POST /api/characters — admin

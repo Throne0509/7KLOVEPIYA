@@ -21,13 +21,21 @@ export const onRequestPut = handle(async ({ request, env, params }) => {
   return json({ ok: true });
 });
 
-// DELETE /api/characters/:id — admin. Refused while any team uses the character.
+// DELETE /api/characters/:id — admin. Refused while any guild war team or boss uses the character.
 export const onRequestDelete = handle(async ({ request, env, params }) => {
   requireAdmin(request, env);
-  const used = await env.DB.prepare("SELECT COUNT(*) AS n FROM teams WHERE instr(data, ?) > 0")
-    .bind(`"${params.id}"`).first();
-  if (used.n > 0) throw new HttpError(409, `ตัวละครนี้ถูกใช้อยู่ใน ${used.n} ทีม เอาออกจากทีมเหล่านั้นก่อนจึงจะลบได้`);
-  const { meta } = await env.DB.prepare("DELETE FROM characters WHERE id = ?").bind(params.id).run();
-  if (meta.changes === 0) throw new HttpError(404, "ไม่พบตัวละครนี้ อาจถูกลบไปแล้ว");
+  const ref = `"${params.id}"`;
+  const used = await env.DB.prepare(
+    "SELECT (SELECT COUNT(*) FROM teams WHERE instr(data, ?1) > 0) AS teams, (SELECT COUNT(*) FROM bosses WHERE instr(data, ?1) > 0) AS bosses"
+  ).bind(ref).first();
+  if (used.teams + used.bosses > 0) {
+    const where = [used.teams && `ทีมกิลวอร์ ${used.teams} ทีม`, used.bosses && `บอส ${used.bosses} ตัว`].filter(Boolean).join(" และ ");
+    throw new HttpError(409, `ตัวละครนี้ถูกใช้อยู่ใน${where} เอาออกก่อนจึงจะลบได้`);
+  }
+  const [del] = await env.DB.batch([
+    env.DB.prepare("DELETE FROM characters WHERE id = ?").bind(params.id),
+    env.DB.prepare("DELETE FROM hero_skills WHERE hero_id = ?").bind(params.id),
+  ]);
+  if (del.meta.changes === 0) throw new HttpError(404, "ไม่พบตัวละครนี้ อาจถูกลบไปแล้ว");
   return json({ ok: true });
 });

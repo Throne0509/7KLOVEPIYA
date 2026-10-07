@@ -46,6 +46,46 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var
 .btn.danger{color:var(--phys);border-color:var(--phys-bg)}
 .btn:disabled{opacity:.5;cursor:default}
 main{padding-block:20px 48px}
+.navtabs{display:flex;gap:4px}
+.navtabs button{border:0;background:none;padding:8px 14px 10px;font-weight:600;font-size:14px;color:var(--muted);border-bottom:2px solid transparent}
+.navtabs button[aria-pressed="true"]{color:var(--ink);border-bottom-color:var(--rose)}
+/* speed order badge on a hero tile */
+.tile .spd{position:absolute;left:-5px;top:-5px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--badge);color:var(--badge-ink);font-size:11px;font-weight:700;display:grid;place-items:center;z-index:2;font-variant-numeric:tabular-nums}
+.tile.small .spd{min-width:15px;height:15px;font-size:9px;left:-4px;top:-4px}
+/* skill icons (boss loops) */
+.skill{--s:40px;width:var(--s);height:var(--s);border-radius:8px;position:relative;display:grid;place-items:center;overflow:hidden;border:1.5px solid var(--line);background:var(--surface);padding:0;font-family:var(--display);font-weight:700;font-size:14px;flex:none;color:var(--muted)}
+.skill img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.skill.noimg{border-style:dashed}
+.skill .sl{position:absolute;bottom:1px;left:0;right:0;font-size:9px;font-weight:600;font-family:var(--body);text-align:center;line-height:1.2}
+.skill .step{position:absolute;left:1px;top:1px;background:var(--badge);color:var(--badge-ink);font-size:10px;line-height:14px;border-radius:4px;padding:0 4px;font-family:var(--body);z-index:1;font-variant-numeric:tabular-nums}
+button.skill{cursor:pointer}button.skill:hover{border-color:var(--rose)}
+.loop{display:flex;flex-wrap:wrap;gap:6px}
+.lpal{display:flex;flex-wrap:wrap;gap:14px}
+.lp{display:grid;grid-template-columns:auto auto;gap:4px;justify-items:center}
+.lp .nm{grid-column:1 / -1;font-size:11px}
+.skillup{display:flex;gap:16px;flex-wrap:wrap}
+.su{display:flex;flex-direction:column;align-items:flex-start;gap:4px;font-size:12px;color:var(--muted)}
+.su .skill{--s:52px}.su b{font-weight:600;color:var(--ink)}
+.su input{font-size:12px;max-width:200px}
+/* boss cards and detail */
+.bhead{display:flex;gap:12px;align-items:center;min-width:0}
+.bhead .bt{min-width:0}
+.bhead h3{margin:0;font-family:var(--display);font-size:16px}
+.bhead .note{color:var(--muted);font-size:12px;margin:2px 0 0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.bface{width:64px;height:64px;border-radius:12px;overflow:hidden;background:var(--rose-soft);border:1px solid var(--rose-line);display:grid;place-items:center;font-family:var(--display);font-size:24px;color:var(--rose);flex:none;position:relative}
+.bface img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.bhead.big{align-items:stretch;flex-wrap:wrap}.bhead.big .bface{width:96px;height:96px}.bhead.big .advice{flex:1;min-width:220px}
+.mini{display:flex;flex-direction:column;gap:6px}
+.mini .lbl{font-size:11px;color:var(--muted)}
+.faces{display:flex;gap:6px;flex-wrap:wrap}
+.room{display:grid;gap:12px;min-width:0}
+.brows{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.brow{display:grid;grid-template-columns:76px minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);font-size:13px;line-height:1.55}
+.brow:first-child{border-top:0}
+.brow.bhd{font-size:11px;color:var(--muted);padding-block:8px;background:var(--bg)}
+.brow .who{display:flex;justify-content:center}
+.brow .span3{grid-column:2 / -1}
+.ml{display:none}
 .search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:10px 16px}
 .search input{border:0;background:none;flex:1;min-width:0;font:inherit;color:var(--ink);outline:none}
 .filters{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-block:14px 18px}
@@ -173,6 +213,11 @@ details.hed .inner{padding:0 12px 12px;display:grid;gap:10px}
 .preview{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .preview .face{width:84px;height:90px;font-size:28px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:13px;z-index:20}
+@media (max-width:640px){
+  .brow{grid-template-columns:64px minmax(0,1fr);gap:4px 12px;align-items:start}
+  .brow>:not(.who){grid-column:2}.brow .who{grid-row:1 / span 3}.brow.pet .who{grid-row:auto}
+  .brow.bhd{display:none}.ml{display:block;font-size:11px;color:var(--muted)}
+}
 @media (max-width:480px){
   .petcol{--t:44px;padding:10px 6px}
   .bar small{display:none}.bar h1{flex:1}
@@ -185,12 +230,18 @@ details.hed .inner{padding:0 12px 12px;display:grid;gap:10px}
 <header><div class="wrap bar"><h1>47LOVEPIYA</h1><small>ฐานข้อมูลทีมแก้</small>
   <button class="btn" id="library" hidden>คลังตัวละคร</button>
   <button class="btn" id="login">แอดมิน</button>
-  <button class="btn primary" id="add" hidden>+ เพิ่มทีม</button></div></header>
+  <button class="btn primary" id="add" hidden>+ เพิ่มทีม</button></div>
+  <nav class="wrap navtabs" aria-label="หมวด"><button data-tab="war" aria-pressed="true">กิลวอร์</button><button data-tab="boss" aria-pressed="false">ตีบอส</button></nav></header>
 <main class="wrap">
+ <section id="warView">
   <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
     <input id="q" type="search" placeholder="ค้นหาทีมเป้าหมายจากชื่อตัวละคร" aria-label="ค้นหาตัวละคร"></label>
   <div class="filters" id="filters"></div>
   <div class="grid" id="grid"><p class="empty">กำลังโหลด...</p></div>
+ </section>
+ <section id="bossView" hidden>
+  <div class="grid" id="bossGrid"><p class="empty">กำลังโหลด...</p></div>
+ </section>
 </main>
 <div class="sheet" id="sheet" hidden></div>
 <div class="toast" id="toast" hidden></div>
@@ -202,6 +253,10 @@ const HERO_TYPES = ["กายภาพ","เวทย์","ถึก","สน�
 const FORMATIONS = {"หน้า 4 หลัง 1":{F:4,B:1},"หน้า 3 หลัง 2":{F:3,B:2},"หน้า 2 หลัง 3":{F:2,B:3},"หน้า 1 หลัง 4":{F:1,B:4}};
 const MAX_HEROES = 3;
 const MAX_SKILLS = 3, MAX_RINGS = 2;
+// must match lib/boss.js
+const BOSS_ROOMS = 2, BOSS_MAX_HEROES = 5, MAX_LOOP = 40;
+const ROOM_LABEL = ["ห้องแรก · ทีม 1", "ห้องสอง · ทีม 2"];
+const SKILL_LABEL = {top: "สกิลบน", bottom: "สกิลล่าง"};
 const KIND_LABEL = {hero: "ฮีโร่", pet: "สัตว์เลี้ยง", ring: "แหวน"};
 const STATS = [ // [key, label, unit]
   ["atk","พลังโจมตี",""],["def","ป้องกัน",""],["hp","HP",""],["spd","สปีด",""],
@@ -210,7 +265,7 @@ const STATS = [ // [key, label, unit]
   ["crush","บดขยี้","%"],["resil","ยืดหยุ่น","%"],["rejuv","ฟื้นฟู","%"]
 ];
 
-const state = {q:"", type:"ทั้งหมด", teams:null, chars:new Map(), canWrite:false, password:null};
+const state = {tab:"war", q:"", type:"ทั้งหมด", teams:null, bosses:null, chars:new Map(), canWrite:false, password:null};
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const splitList = s => s.split(/[,，]/).map(x => x.trim()).filter(Boolean);
@@ -225,10 +280,10 @@ function faceHTML(c){
   const cls = c.kind === "hero" ? "ty-" + c.type : "ty-" + c.kind;
   return `<div class="face ${cls}">${esc([...c.name][0])}${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : ""}</div>`;
 }
-// opts: {small, ring, button:{attrs, pressed}}
+// opts: {small, ring, badge, button:{attrs, pressed}}
 function tileHTML(id, opts = {}){
   const inner = id
-    ? `${faceHTML(char(id))}<span class="nm">${esc(char(id).name)}</span>`
+    ? `${faceHTML(char(id))}${opts.badge ? `<span class="spd" title="ลำดับ speed">${opts.badge}</span>` : ""}<span class="nm">${esc(char(id).name)}</span>`
     : `<div class="slot">${opts.button ? "+" : ""}</div>`;
   const cls = `tile${opts.small ? " small" : ""}${opts.ring ? " ring" : ""}`;
   return opts.button
@@ -249,9 +304,10 @@ function skillBoxesHTML(l, id, edit){
 }
 // l: lineup {formation, back, front, pet, subPet?, skills?}. edit: {active} makes slots clickable.
 // skills: show skill boxes (counter teams only).
-function boardHTML(l, {ally = false, edit = null, withSubPet = false, skills = false} = {}){
+// badges: {heroId: speed order} shown on the tiles (boss teams).
+function boardHTML(l, {ally = false, edit = null, withSubPet = false, skills = false, badges = {}} = {}){
   const slot = (id, key, small) => tileHTML(id, {
-    small, button: edit ? {attrs: `data-slot="${key}" aria-label="ช่อง ${slotLabel(key)}"`, pressed: edit.active === key} : null,
+    small, badge: id ? badges[id] : null, button: edit ? {attrs: `data-slot="${key}" aria-label="ช่อง ${slotLabel(key)}"`, pressed: edit.active === key} : null,
   });
   const hero = (id, key) => skills ? `<div class="unit">${slot(id, key)}${skillBoxesHTML(l, id, edit)}</div>` : slot(id, key);
   const row = (ids, r) => `<div class="row ${r}">${ids.map((id, i) => hero(id, `${r === "B" ? "back" : "front"}:${i}`)).join("")}<span class="pos">${r}</span></div>`;
@@ -271,7 +327,8 @@ function renderFilters(){
     `<button class="chip${ty === "ทั้งหมด" ? "" : " t-" + ty}" data-type="${ty}" aria-pressed="${state.type === ty}">${ty}</button>`).join("")
     + `<span class="count">ทั้งหมด ${state.teams ? state.teams.filter(matches).length : 0} รายการ</span>`;
 }
-function render(){
+function render(){ renderWar(); renderBosses(); }
+function renderWar(){
   renderFilters();
   if(state.teams === null) return;
   const grid = $("#grid");
@@ -377,11 +434,12 @@ function slotLabel(key){
   if(key === "subPet") return "สัตว์เลี้ยงรอง";
   const [r, i] = key.split(":"); return `${r === "back" ? "แถวหลัง" : "แถวหน้า"} ช่อง ${+i + 1}`;
 }
-function lineupEditorHTML(withSubPet){
+// opts: {ally, subPet, skills, max}
+function lineupEditorHTML(o){
   return `<div class="fset">
     <div class="field"><span>ฟอร์เมชัน</span><div class="seg" id="formSeg"></div></div>
     <div id="board"></div>
-    <p class="hint">กดช่องเพื่อเลือกตัวละคร ใส่ฮีโร่ได้ ${MAX_HEROES} ตัว + สัตว์เลี้ยง 1 ตัว${withSubPet ? ` (สัตว์เลี้ยงรองไม่บังคับ) · กดกล่องข้างตัวละครเพื่อจองสกิลบน/ล่างตามลำดับ ได้ ${MAX_SKILLS} สกิล` : ""}</p>
+    <p class="hint">กดช่องเพื่อเลือกตัวละคร ใส่ฮีโร่ได้ ${o.max} ตัว + สัตว์เลี้ยง 1 ตัว${o.subPet ? " (สัตว์เลี้ยงรองไม่บังคับ)" : ""}${o.skills ? ` · กดกล่องข้างตัวละครเพื่อจองสกิลบน/ล่างตามลำดับ ได้ ${MAX_SKILLS} สกิล` : ""}</p>
     <p class="err" id="skillErr" hidden></p>
     <div id="picker" hidden></div>
   </div>`;
@@ -390,7 +448,8 @@ function renderLineup(){
   const d = state.draft;
   if(d.skills) d.skills = d.skills.filter(k => placed(d).includes(k.hero));
   $("#formSeg").innerHTML = Object.keys(FORMATIONS).map(f => `<button type="button" data-formation="${f}" aria-pressed="${f === d.formation}">${f}</button>`).join("");
-  $("#board").innerHTML = boardHTML(d, {ally: state.draftAlly, edit: {active: state.active}, withSubPet: state.draftAlly, skills: state.draftAlly});
+  const o = state.lineupOpts;
+  $("#board").innerHTML = boardHTML(d, {ally: o.ally, edit: {active: state.active}, withSubPet: o.subPet, skills: o.skills});
   renderPicker();
   if(state.onLineupChange) state.onLineupChange();
 }
@@ -422,8 +481,8 @@ function pick(id){
   if(id && key.includes(":")){
     const from = [...d.back.map((h, i) => [`back:${i}`, h]), ...d.front.map((h, i) => [`front:${i}`, h])].find(([, h]) => h === id)?.[0];
     if(from) slotSet(d, from, current);            // already placed: swap with this slot
-    else if(!current && placed(d).length >= MAX_HEROES){
-      const e = $("#pickErr"); e.textContent = `ครบ ${MAX_HEROES} ตัวแล้ว เอาตัวอื่นออกก่อน หรือกดช่องที่มีตัวละครเพื่อเปลี่ยน`; e.hidden = false; return;
+    else if(!current && placed(d).length >= state.lineupOpts.max){
+      const e = $("#pickErr"); e.textContent = `ครบ ${state.lineupOpts.max} ตัวแล้ว เอาตัวอื่นออกก่อน หรือกดช่องที่มีตัวละครเพื่อเปลี่ยน`; e.hidden = false; return;
     }
   }
   if(id && (key === "pet" || key === "subPet") && id === d[key === "pet" ? "subPet" : "pet"]){
@@ -449,19 +508,22 @@ function lineupFromDraft(){
   if(!d.pet) throw new Error("เลือกสัตว์เลี้ยงด้วย");
   return {formation: d.formation, back: [...d.back], front: [...d.front], pet: d.pet};
 }
-function startLineup(l, ally){
+const WAR_TARGET = {ally: false, subPet: false, skills: false, max: MAX_HEROES};
+const WAR_COUNTER = {ally: true, subPet: true, skills: true, max: MAX_HEROES};
+const BOSS_TEAM = {ally: true, subPet: false, skills: false, max: BOSS_MAX_HEROES};
+function startLineup(l, opts){
   state.draft = {...l, back: [...l.back], front: [...l.front], ...(l.skills ? {skills: l.skills.map(k => ({...k}))} : {})};
-  state.draftAlly = ally; state.active = null; state.pickQ = ""; state.onLineupChange = null;
+  state.lineupOpts = opts; state.active = null; state.pickQ = ""; state.onLineupChange = null;
 }
 
 // ---------- editor: target team
 function openTargetEditor(id){
   const t = id ? teamById(id) : null;
-  startLineup(t || emptyLineup(), false);
+  startLineup(t || emptyLineup(), WAR_TARGET);
   showPanel(`<form class="panel wide" id="targetForm" data-id="${id ? esc(id) : ""}" role="dialog" aria-modal="true" aria-labelledby="ph">
     <div class="panel-head">${id ? `<button type="button" class="backbtn" data-open-target="${esc(id)}">‹ กลับ</button>` : ""}<h2 id="ph">${id ? "แก้ไขทีมเป้าหมาย" : "เพิ่มทีมเป้าหมาย"}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
     <label class="field"><span>ประเภททีม</span><select id="e-type">${TEAM_TYPES.map(ty => `<option${ty === t?.type ? " selected" : ""}>${ty}</option>`).join("")}</select></label>
-    ${lineupEditorHTML(false)}
+    ${lineupEditorHTML(WAR_TARGET)}
     <p class="err" id="formErr" hidden></p>
     <div class="actions">
       ${id ? `<button type="button" class="btn danger" id="delTarget">ลบทีมนี้ทั้งหมด</button>` : ""}
@@ -530,7 +592,8 @@ function readHero(el){
   for(const input of el.querySelectorAll("[data-s]")) if(input.value !== "") stats[input.dataset.s] = Number(input.value);
   return [el.dataset.hero, {rings: JSON.parse(el.dataset.rings), sets, stats, detail: f("detail").trim()}];
 }
-const readHeroes = () => Object.fromEntries([...$("#heroFields").querySelectorAll("[data-hero]")].map(readHero));
+// state.heroSection: {html(id, detail), blank(), read(el)} for the open editor
+const readHeroes = () => Object.fromEntries([...$("#heroFields").querySelectorAll("[data-hero]")].map(el => state.heroSection.read(el)));
 // One live section per placed hero, kept as nodes so typed values survive slot changes.
 function syncHeroFields(){
   const ids = placed(state.draft), box = $("#heroFields");
@@ -539,7 +602,7 @@ function syncHeroFields(){
   box.replaceChildren(...ids.map(id => {
     if(!state.heroNodes.has(id)){
       const tpl = document.createElement("template");
-      tpl.innerHTML = heroFieldsHTML(id, state.editHeroes[id] || blankHero());
+      tpl.innerHTML = state.heroSection.html(id, state.editHeroes[id] || state.heroSection.blank());
       state.heroNodes.set(id, tpl.content.firstElementChild);
     }
     return state.heroNodes.get(id);
@@ -548,12 +611,13 @@ function syncHeroFields(){
 function openCounterEditor(id, i){
   const t = teamById(id);
   const c = i === null ? {...emptyLineup(), subPet: "", skills: [], note: "", heroes: {}} : t.counters[i];
-  startLineup({...c, subPet: c.subPet}, true);
+  startLineup(c, WAR_COUNTER);
+  state.heroSection = {html: heroFieldsHTML, blank: blankHero, read: readHero};
   state.editHeroes = c.heroes; state.heroNodes = new Map();
   showPanel(`<form class="panel wide" id="counterForm" data-id="${esc(id)}" data-i="${i === null ? "" : i}" role="dialog" aria-modal="true" aria-labelledby="ph">
     <div class="panel-head"><button type="button" class="backbtn" data-open-target="${esc(id)}">‹ กลับ</button><h2 id="ph">${i === null ? "เพิ่มทีมสู้" : "แก้ไขทีมสู้"}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
     <p class="hint">สู้กับ ${esc(placed(t).map(h => char(h).name).join(" · "))}</p>
-    ${lineupEditorHTML(true)}
+    ${lineupEditorHTML(WAR_COUNTER)}
     <label class="field"><span>คำแนะนำ / วิธีเล่นของทีม</span><textarea id="c-note" placeholder="เช่น เปิดก่อน">${esc(c.note)}</textarea></label>
     <div class="sec"><h3>รายละเอียดตัวละคร <small>เว้นว่างช่องที่ไม่รู้ได้</small></h3></div>
     <div id="heroFields" class="hcards"></div>
@@ -589,14 +653,17 @@ function openLibrary(kind = "hero"){
 }
 function openCharEditor(id, kind){
   const c = id ? char(id) : {kind, name: "", type: "", img: null};
-  state.charImage = undefined;
+  state.charImage = undefined; state.skillImages = {};
   showPanel(`<form class="panel" id="charForm" data-id="${id ? esc(id) : ""}" data-kind="${c.kind}" role="dialog" aria-modal="true" aria-labelledby="ph">
     <div class="panel-head"><button type="button" class="backbtn" data-lib-tab="${c.kind}">‹ คลัง</button><h2 id="ph">${id ? "แก้ไข" : "เพิ่ม"}${KIND_LABEL[c.kind]}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
     <div class="fset">
       <div class="preview${c.kind === "ring" ? " ring" : ""}"><div id="charPreview">${previewHTML(c, c.img)}</div>
         <label class="field" style="flex:1;min-width:180px"><span>รูป (JPG, PNG หรือ WebP ระบบย่อให้อัตโนมัติ)</span><input id="charFile" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
       <label class="field"><span>ชื่อ</span><input id="charName" value="${esc(c.name)}" maxlength="40" required></label>
-      ${c.kind === "hero" ? `<label class="field"><span>ประเภท</span><select id="charType"><option value="">เลือกประเภท</option>${HERO_TYPES.map(t => `<option${t === c.type ? " selected" : ""}>${t}</option>`).join("")}</select></label>` : ""}
+      ${c.kind === "hero" ? `<label class="field"><span>ประเภท</span><select id="charType"><option value="">เลือกประเภท</option>${HERO_TYPES.map(t => `<option${t === c.type ? " selected" : ""}>${t}</option>`).join("")}</select></label>
+      <div class="field"><span>รูปสกิล (ใช้ในลูปสกิลตีบอส)</span><div class="skillup">${["top", "bottom"].map(sl => `
+        <label class="su"><span id="skillPrev-${sl}">${skillPreviewHTML(c.skills?.[sl])}</span><b>${SKILL_LABEL[sl]}</b>
+          <input type="file" data-skill-file="${sl}" accept="image/png,image/jpeg,image/webp"></label>`).join("")}</div></div>` : ""}
     </div>
     <p class="err" id="formErr" hidden></p>
     <div class="actions">
@@ -605,6 +672,7 @@ function openCharEditor(id, kind){
     </div>
   </form>`);
 }
+const skillPreviewHTML = src => `<span class="skill${src ? "" : " noimg"}">${src ? `<img src="${esc(src)}" alt="">` : "+"}</span>`;
 function previewHTML(c, img){
   return faceHTML({...c, name: c.name || "?", type: c.type || "", img});
 }
@@ -625,8 +693,186 @@ async function saveChar(form){
   if(!body.name) throw new Error("กรุณาใส่ชื่อ");
   if(kind === "hero" && !body.type) throw new Error("กรุณาเลือกประเภท");
   if(state.charImage) body.image = {type: state.charImage.type, data: state.charImage.data};
-  await api(id ? "PUT" : "POST", id ? "/api/characters/" + encodeURIComponent(id) : "/api/characters", body);
+  const saved = await api(id ? "PUT" : "POST", id ? "/api/characters/" + encodeURIComponent(id) : "/api/characters", body);
+  const cid = id || saved.id;
+  for(const [sl, img] of Object.entries(state.skillImages))
+    await api("PUT", `/api/characters/${encodeURIComponent(cid)}/skills/${sl}`, {image: {type: img.type, data: img.data}});
   await loadAll(); toast("บันทึกแล้ว"); openLibrary(kind);
+}
+
+// ---------- boss guides
+const bossById = id => { const b = state.bosses.find(x => x.id === id); if(!b) throw new Error("ไม่พบบอส " + id); return b; };
+const bossUrl = id => "/api/bosses/" + encodeURIComponent(id);
+const stripBoss = ({id, img, createdAt, updatedAt, ...b}) => b;
+// Heroes in speed order (heroes without an order last, in slot order).
+const speedOrder = t => placed(t).map((id, i) => [id, t.heroes[id].speed ?? 99 + i]).sort((a, b) => a[1] - b[1]).map(([id]) => id);
+const bossSpeeds = t => Object.fromEntries(placed(t).filter(id => t.heroes[id].speed !== null).map(id => [id, t.heroes[id].speed]));
+const bossFaceHTML = (b, img = b.img) => `<div class="bface">${esc([...(b.name || "?")][0])}${img ? `<img src="${esc(img)}" alt="">` : ""}</div>`;
+const dash = `<span class="dash">—</span>`;
+
+// A hero's upper or lower skill. Without an uploaded icon it shows the hero's initial and บน/ล่าง.
+function skillIconHTML(hero, sl, attrs = "", step = null){
+  const c = char(hero), img = c.skills[sl], label = `${c.name} ${SKILL_LABEL[sl]}`;
+  const inner = img ? `<img src="${esc(img)}" alt="">` : `${esc([...c.name][0])}<span class="sl">${sl === "top" ? "บน" : "ล่าง"}</span>`;
+  const stepHTML = step === null ? "" : `<span class="step">${step}</span>`;
+  const cls = `skill${img ? "" : " noimg ty-" + c.type}`;
+  return attrs
+    ? `<button type="button" class="${cls}" ${attrs} title="${esc(label)}" aria-label="${esc(label)}">${inner}${stepHTML}</button>`
+    : `<span class="${cls}" title="${esc(label)}">${inner}${stepHTML}</span>`;
+}
+const loopHTML = loop => loop.length ? `<div class="loop">${loop.map((k, i) => skillIconHTML(k.hero, k.s, "", i + 1)).join("")}</div>` : dash;
+
+function renderBosses(){
+  const grid = $("#bossGrid");
+  if(state.bosses === null) return;
+  if(!state.bosses.length){
+    grid.innerHTML = `<p class="empty">ยังไม่มีบอส${state.canWrite ? "<br>กด “+ เพิ่มบอส” ด้านบนเพื่อเพิ่มบอสแรก" : ""}</p>`;
+    return;
+  }
+  grid.innerHTML = state.bosses.map(b => `
+    <article class="card">
+      <div class="bhead">${bossFaceHTML(b)}<div class="bt"><h3>${esc(b.name)}</h3>${b.note ? `<p class="note">${esc(b.note)}</p>` : ""}</div></div>
+      ${b.rooms.map((t, r) => `<div class="mini"><span class="lbl">${ROOM_LABEL[r]}</span>${t
+        ? `<div class="faces">${speedOrder(t).map(id => tileHTML(id, {small: true, badge: t.heroes[id].speed})).join("")}${tileHTML(t.pet, {small: true})}</div>`
+        : `<span class="dash">ยังไม่จัดทีม</span>`}</div>`).join("")}
+      <div class="card-foot"><button class="more" data-open-boss="${esc(b.id)}">ดูเพิ่ม ›</button></div>
+    </article>`).join("");
+}
+
+function roomHTML(b, t, r){
+  const head = `<div class="sec"><h3>${ROOM_LABEL[r]}</h3>${state.canWrite
+    ? `<button class="btn${t ? "" : " primary"}" data-edit-room="${esc(b.id)}" data-i="${r}">${t ? "แก้ไขทีม" : "+ จัดทีม"}</button>` : ""}</div>`;
+  if(!t) return head + `<p class="empty">ยังไม่จัดทีม</p>`;
+  const cell = (label, html) => `<div><span class="ml">${label}</span>${html}</div>`;
+  return head + `<div class="room">
+    ${boardHTML(t, {ally: true, badges: bossSpeeds(t)})}
+    <div class="brows">
+      <div class="brow bhd"><span>ตัวละคร</span><span>สเตต</span><span>แหวน</span><span>ของรัก / หมายเหตุ</span></div>
+      ${speedOrder(t).map(id => { const h = t.heroes[id]; return `<div class="brow">
+        <div class="who">${tileHTML(id, {badge: h.speed})}</div>
+        ${cell("สเตต", h.stats ? esc(h.stats) : dash)}${cell("แหวน", ringsHTML(h.rings))}${cell("ของรัก / หมายเหตุ", h.love ? esc(h.love) : dash)}
+      </div>`; }).join("")}
+      <div class="brow pet"><div class="who">${tileHTML(t.pet)}</div><div class="span3"><span class="ml">หมายเหตุสัตว์เลี้ยง</span>${t.petNote ? esc(t.petNote) : dash}</div></div>
+    </div>
+    <div><div class="glabel">ลูปสกิล</div>${loopHTML(t.loop)}</div>
+    ${t.note ? `<div class="advice"><b>คำแนะนำทีม</b><p>${esc(t.note)}</p></div>` : ""}
+  </div>`;
+}
+function openBoss(id){
+  const b = bossById(id);
+  showPanel(`<div class="panel wide" role="dialog" aria-modal="true" aria-labelledby="ph">
+    <div class="panel-head"><h2 id="ph">${esc(b.name)}</h2><button class="x" data-close aria-label="ปิด">✕</button></div>
+    <div class="bhead big">${bossFaceHTML(b)}${b.note ? `<div class="advice"><b>คำแนะนำ</b><p>${esc(b.note)}</p></div>` : ""}</div>
+    ${state.canWrite ? `<div class="actions"><button class="btn" data-edit-boss="${esc(b.id)}">แก้ไขบอส</button></div>` : ""}
+    ${b.rooms.map((t, r) => roomHTML(b, t, r)).join("")}
+  </div>`);
+}
+
+function openBossEditor(id){
+  const b = id ? bossById(id) : {name: "", note: "", img: null};
+  state.bossImage = undefined;
+  showPanel(`<form class="panel" id="bossForm" data-id="${id ? esc(id) : ""}" role="dialog" aria-modal="true" aria-labelledby="ph">
+    <div class="panel-head">${id ? `<button type="button" class="backbtn" data-open-boss="${esc(id)}">‹ กลับ</button>` : ""}<h2 id="ph">${id ? "แก้ไขบอส" : "เพิ่มบอส"}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
+    <div class="fset">
+      <div class="preview"><div id="bossPreview">${bossFaceHTML(b)}</div>
+        <label class="field" style="flex:1;min-width:180px"><span>รูปบอส (JPG, PNG หรือ WebP ระบบย่อให้อัตโนมัติ)</span><input id="bossFile" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
+      <label class="field"><span>ชื่อบอส</span><input id="bossName" value="${esc(b.name)}" maxlength="60" required></label>
+      <label class="field"><span>คำแนะนำ</span><textarea id="bossNote" maxlength="1000" placeholder="เช่น ทีมที่ความเร็วโจมตีสูงสุดจะได้เทิร์นสกิลแรก">${esc(b.note)}</textarea></label>
+    </div>
+    <p class="hint">ทีมของแต่ละห้องจัดได้หลังบันทึก</p>
+    <p class="err" id="formErr" hidden></p>
+    <div class="actions">
+      ${id ? `<button type="button" class="btn danger" id="delBoss">ลบบอสนี้</button>` : ""}
+      <button type="submit" class="btn primary" id="save">บันทึก</button>
+    </div>
+  </form>`);
+}
+async function saveBoss(form){
+  const id = form.dataset.id;
+  const body = {...(id ? stripBoss(bossById(id)) : {rooms: Array(BOSS_ROOMS).fill(null)}), name: $("#bossName").value.trim(), note: $("#bossNote").value.trim()};
+  if(!body.name) throw new Error("กรุณาใส่ชื่อบอส");
+  if(state.bossImage) body.image = {type: state.bossImage.type, data: state.bossImage.data};
+  const saved = await api(id ? "PUT" : "POST", id ? bossUrl(id) : "/api/bosses", body);
+  await loadAll(); toast("บันทึกแล้ว"); openBoss(id || saved.id);
+}
+
+// Boss team editor: same slot board as guild war, 5 heroes, plus per-hero rows and a skill loop.
+function bossHeroFieldsHTML(id, d){
+  const c = char(id);
+  return `<details class="hed" data-hero="${esc(id)}" data-rings="${esc(JSON.stringify(d.rings))}" open>
+    <summary>${esc(c.name)} <small>${c.type}</small></summary>
+    <div class="inner">
+      <div class="fgrid">
+        <label class="field"><span>ลำดับ speed</span><select data-f="speed"><option value="">ไม่ระบุ</option>${Array.from({length: BOSS_MAX_HEROES}, (_, k) => k + 1).map(k => `<option${k === d.speed ? " selected" : ""}>${k}</option>`).join("")}</select></label>
+        <div class="field"><span>แหวน (${MAX_RINGS} วง)</span><div class="ringrow" data-ringrow>${ringSlotsHTML(d.rings)}</div></div>
+        <label class="field"><span>ของรัก / หมายเหตุ</span><input data-f="love" value="${esc(d.love)}" maxlength="100" placeholder="เช่น โจม หรือ เสริมเสียหาย 4"></label>
+      </div>
+      <div class="ringpick" data-ringpick hidden></div>
+      <label class="field"><span>สเตต</span><textarea data-f="stats" maxlength="300" placeholder="เช่น สปีด 33+ โจมน้อยกว่าตุ้ม คริ 100 คริแดม 220+">${esc(d.stats)}</textarea></label>
+    </div>
+  </details>`;
+}
+const blankBossHero = () => ({speed: null, rings: [], love: "", stats: ""});
+function readBossHero(el){
+  const f = k => el.querySelector(`[data-f="${k}"]`).value;
+  return [el.dataset.hero, {speed: f("speed") ? Number(f("speed")) : null, rings: JSON.parse(el.dataset.rings), love: f("love").trim(), stats: f("stats").trim()}];
+}
+function renderLoopEditor(){
+  const d = state.draft, ids = placed(d);
+  d.loop = d.loop.filter(k => ids.includes(k.hero));
+  $("#loopPalette").innerHTML = ids.length
+    ? ids.map(id => `<div class="lp">${["top", "bottom"].map(sl => skillIconHTML(id, sl, `data-loop-add="${esc(id)}|${sl}"`)).join("")}<span class="nm">${esc(char(id).name)}</span></div>`).join("")
+    : `<p class="hint">วางฮีโร่ลงช่องก่อน สกิลของทีมจะขึ้นที่นี่</p>`;
+  $("#loopStrip").innerHTML = d.loop.length
+    ? d.loop.map((k, i) => skillIconHTML(k.hero, k.s, `data-loop-del="${i}"`, i + 1)).join("")
+    : `<p class="hint">กดสกิลด้านบนเพื่อเพิ่มต่อท้ายลูป</p>`;
+  $("#loopCount").textContent = `${d.loop.length}/${MAX_LOOP}`;
+}
+function loopAdd(hero, sl){
+  const err = $("#loopErr");
+  if(state.draft.loop.length >= MAX_LOOP){ err.textContent = `ลูปยาวได้ไม่เกิน ${MAX_LOOP} ครั้ง`; err.hidden = false; return; }
+  err.hidden = true;
+  state.draft.loop.push({hero, s: sl});
+  renderLoopEditor();
+}
+function openRoomEditor(id, r){
+  const b = bossById(id), t = b.rooms[r] || {...emptyLineup(), heroes: {}, petNote: "", loop: [], note: ""};
+  startLineup(t, BOSS_TEAM);
+  state.draft.loop = t.loop.map(k => ({...k}));
+  state.heroSection = {html: bossHeroFieldsHTML, blank: blankBossHero, read: readBossHero};
+  state.editHeroes = t.heroes; state.heroNodes = new Map();
+  showPanel(`<form class="panel wide" id="roomForm" data-id="${esc(id)}" data-i="${r}" role="dialog" aria-modal="true" aria-labelledby="ph">
+    <div class="panel-head"><button type="button" class="backbtn" data-open-boss="${esc(id)}">‹ กลับ</button><h2 id="ph">${esc(b.name)} · ${ROOM_LABEL[r]}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
+    ${lineupEditorHTML(BOSS_TEAM)}
+    <label class="field"><span>หมายเหตุสัตว์เลี้ยง</span><input id="r-petNote" value="${esc(t.petNote)}" maxlength="200" placeholder="เช่น ศักย์โจมรวมกัน 53 + อัพสกิล"></label>
+    <div class="sec"><h3>รายละเอียดตัวละคร <small>เว้นว่างช่องที่ไม่รู้ได้</small></h3></div>
+    <div id="heroFields" class="hcards"></div>
+    <div class="sec"><h3>ลูปสกิล <small id="loopCount"></small></h3><button type="button" class="btn" data-loop-clear>ล้างลูป</button></div>
+    <div class="fset">
+      <div><div class="glabel">กดสกิลเพื่อเพิ่มต่อท้ายลูป</div><div id="loopPalette" class="lpal"></div></div>
+      <div><div class="glabel">ลูป (กดสกิลในลูปเพื่อเอาออก)</div><div id="loopStrip" class="loop"></div></div>
+      <p class="err" id="loopErr" hidden></p>
+    </div>
+    <label class="field"><span>คำแนะนำทีม</span><textarea id="r-note" maxlength="500">${esc(t.note)}</textarea></label>
+    <p class="err" id="formErr" hidden></p>
+    <div class="actions">
+      ${b.rooms[r] ? `<button type="button" class="btn danger" id="clearRoom">ล้างทีมห้องนี้</button>` : ""}
+      <button type="submit" class="btn primary" id="save">บันทึกทีม</button>
+    </div>
+  </form>`);
+  state.onLineupChange = () => { syncHeroFields(); renderLoopEditor(); };
+  renderLineup();
+}
+async function saveRoom(form){
+  const b = bossById(form.dataset.id), r = Number(form.dataset.i);
+  const heroes = readHeroes();
+  const speeds = Object.values(heroes).map(h => h.speed).filter(n => n !== null);
+  if(new Set(speeds).size !== speeds.length) throw new Error("ลำดับ speed ซ้ำกัน แต่ละตัวต้องได้เลขไม่ซ้ำ");
+  if(speeds.some(n => n > placed(state.draft).length)) throw new Error(`ทีมนี้มี ${placed(state.draft).length} ตัว ลำดับ speed ใช้ได้ถึง ${placed(state.draft).length}`);
+  const team = {...lineupFromDraft(), heroes, petNote: $("#r-petNote").value.trim(), loop: state.draft.loop, note: $("#r-note").value.trim()};
+  const rooms = [...b.rooms]; rooms[r] = team;
+  await api("PUT", bossUrl(b.id), {...stripBoss(b), rooms});
+  await loadAll(); toast("บันทึกทีมแล้ว"); openBoss(b.id);
 }
 
 // ---------- deletes (two-tap confirm, no browser dialogs)
@@ -644,6 +890,17 @@ async function deleteTarget(id, btn){
   if(!confirmTap(btn, "กดอีกครั้ง: ลบทีมนี้และทีมสู้ทั้งหมด")) return;
   await api("DELETE", teamUrl(id));
   await loadAll(); closeSheet(); toast("ลบทีมแล้ว");
+}
+async function deleteBoss(id, btn){
+  if(!confirmTap(btn, "กดอีกครั้ง: ลบบอสและทีมทั้งหมด")) return;
+  await api("DELETE", bossUrl(id));
+  await loadAll(); closeSheet(); toast("ลบบอสแล้ว");
+}
+async function clearRoom(id, r, btn){
+  if(!confirmTap(btn, "กดอีกครั้งเพื่อยืนยัน")) return;
+  const b = bossById(id), rooms = [...b.rooms]; rooms[r] = null;
+  await api("PUT", bossUrl(id), {...stripBoss(b), rooms});
+  await loadAll(); toast("ล้างทีมแล้ว"); openBoss(id);
 }
 async function deleteChar(id, btn){
   if(!confirmTap(btn, "กดอีกครั้งเพื่อยืนยันการลบ")) return;
@@ -666,11 +923,22 @@ async function api(method, path, body){
 }
 async function loadAll(){
   try {
-    const [chars, teams] = await Promise.all([api("GET", "/api/characters"), api("GET", "/api/teams")]);
+    const [chars, teams, bosses] = await Promise.all([api("GET", "/api/characters"), api("GET", "/api/teams"), api("GET", "/api/bosses")]);
     state.chars = new Map(chars.map(c => [c.id, c]));
-    state.teams = teams;
+    state.teams = teams; state.bosses = bosses;
     render();
-  } catch(e){ $("#grid").innerHTML = `<p class="empty">โหลดข้อมูลไม่สำเร็จ: ${esc(e.message)}</p>`; }
+  } catch(e){
+    for(const g of ["#grid", "#bossGrid"]) $(g).innerHTML = `<p class="empty">โหลดข้อมูลไม่สำเร็จ: ${esc(e.message)}</p>`;
+  }
+}
+
+// ---------- tabs (#boss in the address opens the boss tab)
+function setTab(tab){
+  state.tab = tab;
+  $("#warView").hidden = tab !== "war"; $("#bossView").hidden = tab !== "boss";
+  for(const b of document.querySelectorAll("[data-tab]")) b.setAttribute("aria-pressed", b.dataset.tab === tab);
+  $("#add").textContent = tab === "war" ? "+ เพิ่มทีม" : "+ เพิ่มบอส";
+  history.replaceState(null, "", tab === "boss" ? "#boss" : location.pathname);
 }
 
 // ---------- admin
@@ -716,7 +984,9 @@ async function run(btn, fn){
 $("#q").addEventListener("input", e => { state.q = e.target.value; render(); });
 $("#filters").addEventListener("click", e => { const b = e.target.closest("[data-type]"); if(b){ state.type = b.dataset.type; render(); } });
 $("#grid").addEventListener("click", e => { const b = e.target.closest("[data-open-target]"); if(b) openTarget(b.dataset.openTarget); });
-$("#add").addEventListener("click", () => openTargetEditor(null));
+$("#bossGrid").addEventListener("click", e => { const b = e.target.closest("[data-open-boss]"); if(b) openBoss(b.dataset.openBoss); });
+document.querySelector(".navtabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if(b) setTab(b.dataset.tab); });
+$("#add").addEventListener("click", () => state.tab === "war" ? openTargetEditor(null) : openBossEditor(null));
 $("#library").addEventListener("click", () => openLibrary("hero"));
 $("#login").addEventListener("click", () => state.password ? setAdmin(null) : openLogin());
 $("#sheet").addEventListener("click", e => {
@@ -737,6 +1007,12 @@ $("#sheet").addEventListener("click", e => {
   if(d.editTarget) return openTargetEditor(d.editTarget);
   if(d.addCounter) return openCounterEditor(d.addCounter, null);
   if(d.editCounter) return openCounterEditor(d.editCounter, i);
+  if(d.openBoss) return openBoss(d.openBoss);
+  if(d.editBoss) return openBossEditor(d.editBoss);
+  if(d.editRoom) return openRoomEditor(d.editRoom, i);
+  if(d.loopAdd){ const [hero, sl] = d.loopAdd.split("|"); return loopAdd(hero, sl); }
+  if(d.loopDel !== undefined){ state.draft.loop.splice(Number(d.loopDel), 1); $("#loopErr").hidden = true; return renderLoopEditor(); }
+  if(d.loopClear !== undefined){ state.draft.loop = []; return renderLoopEditor(); }
   if(d.libTab) return openLibrary(d.libTab);
   if(d.newChar) return openCharEditor(null, d.newChar);
   if(d.editChar) return openCharEditor(d.editChar);
@@ -744,22 +1020,35 @@ $("#sheet").addEventListener("click", e => {
   if(d.delCounter) return run(armed, () => deleteCounter(d.delCounter, i, b));
   if(b.id === "delTarget") return run(armed, () => deleteTarget($("#targetForm").dataset.id, b));
   if(b.id === "delChar") return run(armed, () => deleteChar($("#charForm").dataset.id, b));
+  if(b.id === "delBoss") return run(armed, () => deleteBoss($("#bossForm").dataset.id, b));
+  if(b.id === "clearRoom") return run(armed, () => clearRoom($("#roomForm").dataset.id, Number($("#roomForm").dataset.i), b));
 });
 $("#sheet").addEventListener("input", e => {
   if(e.target.id === "pickQ"){ state.pickQ = e.target.value; renderPickGrid(); }
 });
 $("#sheet").addEventListener("change", e => {
-  if(e.target.id !== "charFile" || !e.target.files[0]) return;
-  run(null, async () => {
-    state.charImage = await encodeImage(e.target.files[0]);
+  const el = e.target, file = el.files?.[0];
+  if(!file) return;
+  if(el.id === "charFile") return run(null, async () => {
+    state.charImage = await encodeImage(file);
     const form = $("#charForm");
     $("#charPreview").innerHTML = previewHTML({kind: form.dataset.kind, name: $("#charName").value, type: form.dataset.kind === "hero" ? $("#charType").value : ""}, state.charImage.preview);
+  });
+  if(el.dataset.skillFile) return run(null, async () => {
+    const sl = el.dataset.skillFile;
+    state.skillImages[sl] = await encodeImage(file);
+    $(`#skillPrev-${sl}`).innerHTML = skillPreviewHTML(state.skillImages[sl].preview);
+  });
+  if(el.id === "bossFile") return run(null, async () => {
+    state.bossImage = await encodeImage(file);
+    $("#bossPreview").innerHTML = bossFaceHTML({name: $("#bossName").value}, state.bossImage.preview);
   });
 });
 $("#sheet").addEventListener("submit", e => {
   e.preventDefault();
   const f = e.target;
-  const action = {loginForm: login, targetForm: () => saveTarget(f), counterForm: () => saveCounter(f), charForm: () => saveChar(f)}[f.id];
+  const action = {loginForm: login, targetForm: () => saveTarget(f), counterForm: () => saveCounter(f), charForm: () => saveChar(f),
+                  bossForm: () => saveBoss(f), roomForm: () => saveRoom(f)}[f.id];
   if(!action) throw new Error("ไม่รู้จักฟอร์ม " + f.id);
   run($("#save"), action);
 });
@@ -767,6 +1056,7 @@ document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("#sheet"
 
 let savedPw = null;
 try { savedPw = sessionStorage.getItem(PW_KEY); } catch {}
+setTab(location.hash === "#boss" ? "boss" : "war");
 setAdmin(savedPw);
 loadAll();
 </script>
