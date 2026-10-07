@@ -125,11 +125,12 @@ button.skill{cursor:pointer}button.skill:hover{border-color:var(--rose)}
 .ty-ถึก{color:var(--tank);background:var(--tank-bg)}.ty-สนับสนุน{color:var(--etc);background:var(--etc-bg)}
 .ty-สมดุล{color:var(--bal);background:var(--bal-bg)}.ty-pet{color:var(--rose);background:var(--surface)}
 .ty-ring{color:var(--tank);background:var(--tank-bg)}
-.tile.ring{--t:46px}.tile.ring .face,.tile.ring .slot{height:var(--t);border-radius:50%}
+.tile.ring,.tile.set{--t:46px}.tile.ring .face,.tile.ring .slot{height:var(--t);border-radius:50%}
+.tile.set .face,.tile.set .slot{height:var(--t);border-radius:10px}.ty-set{color:var(--etc);background:var(--etc-bg)}
 .rings,.ringrow{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap}
 .plus{align-self:flex-start;height:46px;display:grid;place-items:center;font-weight:700;color:var(--muted);font-size:16px}
 .ringpick{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:8px}
-.preview.ring .face{border-radius:50%;width:84px;height:84px}
+.preview.ring .face{border-radius:50%;width:84px;height:84px}.preview.set .face{border-radius:14px;width:84px;height:84px}
 .tile .nm{font-size:clamp(9px,calc(var(--t) * .22),11px);text-align:center;line-height:1.2;word-break:break-word;color:var(--ink)}
 .slot{width:var(--t);height:calc(var(--t) * 1.07);border-radius:7px;border:1.5px dashed var(--dash);background:color-mix(in srgb,var(--surface) 55%,transparent);display:grid;place-items:center;color:var(--muted);font-size:18px}
 .tile.small{--t:34px}.tile.small .face,.tile.small .slot{border-width:1.5px}.tile.small .nm{font-size:10px;color:var(--muted)}
@@ -170,10 +171,6 @@ button.tile:hover .slot{border-color:var(--rose);color:var(--rose)}
 .hbody{display:flex;flex-direction:column;gap:10px;min-width:0}
 .gear{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
 .glabel{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.02em}
-.pills{display:flex;flex-wrap:wrap;gap:4px}
-.pill{background:var(--none-bg);border-radius:6px;padding:3px 8px;font-size:12px}
-.pill.ring{background:var(--tank-bg);color:var(--tank)}.pill.set{background:var(--etc-bg);color:var(--etc)}
-.pill.ord{background:var(--badge);color:var(--badge-ink);font-variant-numeric:tabular-nums}
 .dash{color:var(--muted);font-size:12px}
 .stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .stat{display:flex;justify-content:space-between;gap:8px;padding:6px 10px;font-size:12px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);margin:0 -1px -1px 0}
@@ -242,7 +239,7 @@ const TEAM_TYPES = ["ถึก","เวทย์","กายภาพ","อื�
 const HERO_TYPES = ["กายภาพ","เวทย์","ถึก","สนับสนุน","สมดุล"];
 const FORMATIONS = {"หน้า 4 หลัง 1":{F:4,B:1},"หน้า 3 หลัง 2":{F:3,B:2},"หน้า 2 หลัง 3":{F:2,B:3},"หน้า 1 หลัง 4":{F:1,B:4}};
 const MAX_HEROES = 3;
-const MAX_SKILLS = 3, MAX_RINGS = 2;
+const MAX_SKILLS = 3;
 // must match lib/boss.js
 const BOSS_ROOMS = 2, BOSS_MAX_HEROES = 5, MAX_LOOP = 40;
 const ROOM_LABEL = ["ห้องแรก · ทีม 1", "ห้องสอง · ทีม 2"];
@@ -252,7 +249,9 @@ const MODE_LABEL = {boss: "บอส", castle: "ปราสาท"};
 const SKILL_SLOTS = ["top", "bottom", "awake"];
 const SKILL_LABEL = {top: "สกิลบน", bottom: "สกิลล่าง", awake: "สกิลอเวค"};
 const SKILL_SHORT = {top: "บน", bottom: "ล่าง", awake: "อเวค"};
-const KIND_LABEL = {hero: "ฮีโร่", pet: "สัตว์เลี้ยง", ring: "แหวน"};
+const KIND_LABEL = {hero: "ฮีโร่", pet: "สัตว์เลี้ยง", ring: "แหวน", set: "เซ็ตไอเทม"};
+// Rings and item sets: slots per hero (must match MAX_RINGS / MAX_SETS on the server)
+const GEAR_MAX = {ring: 2, set: 2};
 const STATS = [ // [key, label, unit]
   ["atk","พลังโจมตี",""],["def","ป้องกัน",""],["hp","HP",""],["spd","สปีด",""],
   ["crit","อัตราคริ","%"],["critDmg","ดาเมจคริ","%"],["weak","โอกาสโดนจุดอ่อน","%"],["block","อัตราบล็อก","%"],
@@ -275,12 +274,12 @@ function faceHTML(c){
   const cls = c.kind === "hero" ? "ty-" + c.type : "ty-" + c.kind;
   return `<div class="face ${cls}">${esc([...c.name][0])}${c.img ? `<img src="${esc(c.img)}" alt="" loading="lazy">` : ""}</div>`;
 }
-// opts: {small, ring, badge, button:{attrs, pressed}}
+// opts: {small, gear: "ring"|"set", badge, button:{attrs, pressed}}
 function tileHTML(id, opts = {}){
   const inner = id
     ? `${faceHTML(char(id))}${opts.badge ? `<span class="spd" title="ลำดับ speed">${opts.badge}</span>` : ""}<span class="nm">${esc(char(id).name)}</span>`
     : `<div class="slot">${opts.button ? "+" : ""}</div>`;
-  const cls = `tile${opts.small ? " small" : ""}${opts.ring ? " ring" : ""}`;
+  const cls = `tile${opts.small ? " small" : ""}${opts.gear ? " " + opts.gear : ""}`;
   return opts.button
     ? `<button type="button" class="${cls}" ${opts.button.attrs} aria-pressed="${!!opts.button.pressed}">${inner}</button>`
     : `<div class="${cls}">${inner}</div>`;
@@ -368,10 +367,10 @@ function statsHTML(stats){
   return filled.length ? `<div><div class="glabel">สเตตัส</div><div class="stats">${filled.map(([k, label, unit]) =>
     `<div class="stat"><span>${label}</span><b>${stats[k].toLocaleString("th-TH")}${unit}</b></div>`).join("")}</div></div>` : "";
 }
-const pills = (list, cls) => list.length ? `<div class="pills">${list.map(x => `<span class="pill ${cls}">${esc(x)}</span>`).join("")}</div>` : `<span class="dash">—</span>`;
-function ringsHTML(rings){
-  if(!rings.length) return `<span class="dash">—</span>`;
-  return `<div class="rings">${rings.map(r => tileHTML(r, {ring: true})).join(`<span class="plus">+</span>`)}</div>`;
+// Rings or item sets as icons joined by "+".
+function gearHTML(ids, kind){
+  if(!ids.length) return `<span class="dash">—</span>`;
+  return `<div class="rings">${ids.map(r => tileHTML(r, {gear: kind})).join(`<span class="plus">+</span>`)}</div>`;
 }
 function heroCardHTML(id, d){
   const c = char(id);
@@ -379,8 +378,8 @@ function heroCardHTML(id, d){
     <div class="who">${tileHTML(id)}<span class="tyl ty-${c.type}">${c.type}</span></div>
     <div class="hbody">
       <div class="gear">
-        <div><div class="glabel">แหวน</div>${ringsHTML(d.rings)}</div>
-        <div><div class="glabel">เซ็ตไอเทม</div>${pills(d.sets, "set")}</div>
+        <div><div class="glabel">แหวน</div>${gearHTML(d.rings, "ring")}</div>
+        <div><div class="glabel">เซ็ตไอเทม</div>${gearHTML(d.sets, "set")}</div>
       </div>
       ${statsHTML(d.stats)}
       ${d.detail ? `<p class="hdetail">${esc(d.detail)}</p>` : ""}
@@ -537,14 +536,13 @@ async function saveTarget(form){
 // ---------- editor: counter team (+ per-hero details)
 function heroFieldsHTML(id, d){
   const c = char(id);
-  return `<details class="hed" data-hero="${esc(id)}" data-rings="${esc(JSON.stringify(d.rings))}" open>
+  return `<details class="hed" data-hero="${esc(id)}" ${gearDataHTML(d)} open>
     <summary>${esc(c.name)} <small>${c.type}</small></summary>
     <div class="inner">
       <div class="fgrid">
-        <div class="field"><span>แหวน (${MAX_RINGS} วง)</span><div class="ringrow" data-ringrow>${ringSlotsHTML(d.rings)}</div></div>
-        <label class="field"><span>เซ็ตไอเทม (สูงสุด 3 คั่นด้วย , )</span><input data-f="sets" value="${esc(d.sets.join(", "))}"></label>
+        ${gearFieldsHTML(d)}
       </div>
-      <div class="ringpick" data-ringpick hidden></div>
+      <div class="ringpick" data-gearpick hidden></div>
       <div class="sgrid">${STATS.map(([key, label, unit]) =>
         `<label class="field"><span>${label}${unit ? " (" + unit + ")" : ""}</span><input data-s="${key}" type="number" min="0" step="any" value="${d.stats[key] ?? ""}"></label>`).join("")}</div>
       <label class="field"><span>รายละเอียด / คำแนะนำของตัวนี้</span><textarea data-f="detail" placeholder="เช่น คาว6+6 สปีดเกินซอริน ต้าน100 เข้าเป้า30">${esc(d.detail)}</textarea></label>
@@ -552,40 +550,46 @@ function heroFieldsHTML(id, d){
   </details>`;
 }
 const blankHero = () => ({rings:[], sets:[], stats:{}, detail:""});
-// Two ring slots joined by "+". A section keeps its chosen ring ids in data-rings.
-function ringSlotsHTML(rings, active = null){
-  return [0, 1].map(i => tileHTML(rings[i] || null, {ring: true, button: {attrs: `data-ring-slot="${i}" aria-label="แหวนวงที่ ${i + 1}"`, pressed: active === i}}))
-    .join(`<span class="plus">+</span>`);
+// Ring and item set slots in a hero section. The section keeps the chosen ids in data-ring / data-set;
+// one picker box per section serves whichever slot was tapped.
+const gearDataHTML = d => `data-ring="${esc(JSON.stringify(d.rings))}" data-set="${esc(JSON.stringify(d.sets))}"`;
+const gearIds = (section, kind) => JSON.parse(section.dataset[kind]);
+const gearFieldsHTML = d => ["ring", "set"].map(kind =>
+  `<div class="field"><span>${KIND_LABEL[kind]} (${GEAR_MAX[kind]} ช่อง)</span><div class="ringrow" data-gearrow="${kind}">${gearSlotsHTML(kind, kind === "ring" ? d.rings : d.sets)}</div></div>`).join("");
+function gearSlotsHTML(kind, ids, active = null){
+  return Array.from({length: GEAR_MAX[kind]}, (_, i) => tileHTML(ids[i] || null, {gear: kind,
+    button: {attrs: `data-gear-slot="${kind}:${i}" aria-label="${KIND_LABEL[kind]}ช่องที่ ${i + 1}"`, pressed: active === i}})).join(`<span class="plus">+</span>`);
 }
-function openRingPicker(section, i){
-  const pickBox = section.querySelector("[data-ringpick]"), rings = JSON.parse(section.dataset.rings);
-  const open = pickBox.dataset.slot === String(i) && !pickBox.hidden;
-  section.querySelector("[data-ringrow]").innerHTML = ringSlotsHTML(rings, open ? null : i);
-  pickBox.hidden = open;
-  if(open) return;
-  pickBox.dataset.slot = i;
-  const list = charsOf("ring");
-  pickBox.innerHTML = `<div class="picker-head"><b>เลือกแหวนวงที่ ${i + 1}</b>
-      ${rings[i] ? `<button type="button" class="btn" data-ring-pick="">เอาออก</button>` : ""}</div>
-    ${list.length ? `<div class="pick-grid">${list.map(r => tileHTML(r.id, {ring: true, button: {attrs: `data-ring-pick="${esc(r.id)}"`, pressed: r.id === rings[i]}})).join("")}</div>`
-      : `<p class="hint">ยังไม่มีแหวนในคลัง เพิ่มได้ที่ “คลังตัวละคร” แท็บแหวน</p>`}`;
+function redrawGearRows(section, activeKind = null, activeSlot = null){
+  for(const kind of ["ring", "set"])
+    section.querySelector(`[data-gearrow="${kind}"]`).innerHTML = gearSlotsHTML(kind, gearIds(section, kind), kind === activeKind ? activeSlot : null);
 }
-function pickRing(section, id){
-  const pickBox = section.querySelector("[data-ringpick]"), i = +pickBox.dataset.slot;
-  const rings = JSON.parse(section.dataset.rings);
-  rings[i] = id || null;
-  const kept = rings.filter(Boolean);
-  section.dataset.rings = JSON.stringify(kept);
-  pickBox.hidden = true;
-  section.querySelector("[data-ringrow]").innerHTML = ringSlotsHTML(kept);
+function openGearPicker(section, kind, i){
+  const box = section.querySelector("[data-gearpick]"), ids = gearIds(section, kind);
+  const closing = !box.hidden && box.dataset.kind === kind && box.dataset.slot === String(i);
+  box.hidden = closing;
+  redrawGearRows(section, kind, closing ? null : i);
+  if(closing) return;
+  box.dataset.kind = kind; box.dataset.slot = i;
+  const list = charsOf(kind);
+  box.innerHTML = `<div class="picker-head"><b>เลือก${KIND_LABEL[kind]}ช่องที่ ${i + 1}</b>
+      ${ids[i] ? `<button type="button" class="btn" data-gear-pick="">เอาออก</button>` : ""}</div>
+    ${list.length ? `<div class="pick-grid">${list.map(r => tileHTML(r.id, {gear: kind, button: {attrs: `data-gear-pick="${esc(r.id)}"`, pressed: r.id === ids[i]}})).join("")}</div>`
+      : `<p class="hint">ยังไม่มี${KIND_LABEL[kind]}ในคลัง เพิ่มได้ที่ “คลังตัวละคร” แท็บ${KIND_LABEL[kind]}</p>`}`;
+}
+function pickGear(section, id){
+  const box = section.querySelector("[data-gearpick]"), kind = box.dataset.kind, i = +box.dataset.slot;
+  const ids = gearIds(section, kind);
+  ids[i] = id || null;
+  section.dataset[kind] = JSON.stringify(ids.filter(Boolean));
+  box.hidden = true;
+  redrawGearRows(section);
 }
 function readHero(el){
-  const name = char(el.dataset.hero).name, f = k => el.querySelector(`[data-f="${k}"]`).value;
-  const sets = splitList(f("sets"));
-  if(sets.length > 3) throw new Error(`${name}: เซ็ตไอเทมใส่ได้ไม่เกิน 3`);
+  const f = k => el.querySelector(`[data-f="${k}"]`).value;
   const stats = {};
   for(const input of el.querySelectorAll("[data-s]")) if(input.value !== "") stats[input.dataset.s] = Number(input.value);
-  return [el.dataset.hero, {rings: JSON.parse(el.dataset.rings), sets, stats, detail: f("detail").trim()}];
+  return [el.dataset.hero, {rings: gearIds(el, "ring"), sets: gearIds(el, "set"), stats, detail: f("detail").trim()}];
 }
 // state.heroSection: {html(id, detail), blank(), read(el)} for the open editor
 const readHeroes = () => Object.fromEntries([...$("#heroFields").querySelectorAll("[data-hero]")].map(el => state.heroSection.read(el)));
@@ -641,7 +645,7 @@ function openLibrary(kind = "hero"){
     <div class="sec"><div class="tabs seg">
         ${Object.entries(KIND_LABEL).map(([k, label]) => `<button type="button" data-lib-tab="${k}" aria-pressed="${kind === k}">${label} (${charsOf(k).length})</button>`).join("")}</div>
       <button class="btn primary" data-new-char="${kind}">+ เพิ่ม${KIND_LABEL[kind]}</button></div>
-    ${list.length ? `<div class="lib-grid">${list.map(c => tileHTML(c.id, {ring: kind === "ring", button: {attrs: `data-edit-char="${esc(c.id)}"`}})).join("")}</div>`
+    ${list.length ? `<div class="lib-grid">${list.map(c => tileHTML(c.id, {gear: GEAR_MAX[kind] ? kind : null, button: {attrs: `data-edit-char="${esc(c.id)}"`}})).join("")}</div>`
       : `<p class="empty">ยังไม่มี${KIND_LABEL[kind]} กด “+ เพิ่ม” เพื่อเริ่ม</p>`}
     <p class="hint">กดที่รายการเพื่อแก้ชื่อ${kind === "hero" ? " ประเภท" : ""} หรือเปลี่ยนรูป</p>
   </div>`);
@@ -652,7 +656,7 @@ function openCharEditor(id, kind){
   showPanel(`<form class="panel" id="charForm" data-id="${id ? esc(id) : ""}" data-kind="${c.kind}" role="dialog" aria-modal="true" aria-labelledby="ph">
     <div class="panel-head"><button type="button" class="backbtn" data-lib-tab="${c.kind}">‹ คลัง</button><h2 id="ph">${id ? "แก้ไข" : "เพิ่ม"}${KIND_LABEL[c.kind]}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
     <div class="fset">
-      <div class="preview${c.kind === "ring" ? " ring" : ""}"><div id="charPreview">${previewHTML(c, c.img)}</div>
+      <div class="preview ${c.kind}"><div id="charPreview">${previewHTML(c, c.img)}</div>
         <label class="field" style="flex:1;min-width:180px"><span>รูป (JPG, PNG หรือ WebP ระบบย่อให้อัตโนมัติ)</span><input id="charFile" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
       <label class="field"><span>ชื่อ</span><input id="charName" value="${esc(c.name)}" maxlength="40" required></label>
       ${c.kind === "hero" ? `<label class="field"><span>ประเภท</span><select id="charType"><option value="">เลือกประเภท</option>${HERO_TYPES.map(t => `<option${t === c.type ? " selected" : ""}>${t}</option>`).join("")}</select></label>
@@ -752,8 +756,8 @@ function bossHeroCardHTML(id, h){
     <div class="who">${tileHTML(id, {badge: h.speed})}<span class="tyl ty-${c.type}">${c.type}</span></div>
     <div class="hbody">
       <div class="gear">
-        <div><div class="glabel">แหวน</div>${ringsHTML(h.rings)}</div>
-        <div><div class="glabel">เซ็ตไอเทม</div>${pills(h.sets, "set")}</div>
+        <div><div class="glabel">แหวน</div>${gearHTML(h.rings, "ring")}</div>
+        <div><div class="glabel">เซ็ตไอเทม</div>${gearHTML(h.sets, "set")}</div>
         <div><div class="glabel">ของรัก</div>${h.love ? esc(h.love) : dash}</div>
       </div>
       ${statsHTML(h.stats)}
@@ -813,16 +817,15 @@ async function saveBoss(form){
 // Boss team editor: same slot board as guild war, 5 heroes, plus per-hero rows and a skill loop.
 function bossHeroFieldsHTML(id, d){
   const c = char(id);
-  return `<details class="hed" data-hero="${esc(id)}" data-rings="${esc(JSON.stringify(d.rings))}" open>
+  return `<details class="hed" data-hero="${esc(id)}" ${gearDataHTML(d)} open>
     <summary>${esc(c.name)} <small>${c.type}</small></summary>
     <div class="inner">
       <div class="fgrid">
         <label class="field"><span>ลำดับ speed</span><select data-f="speed"><option value="">ไม่ระบุ</option>${Array.from({length: BOSS_MAX_HEROES}, (_, k) => k + 1).map(k => `<option${k === d.speed ? " selected" : ""}>${k}</option>`).join("")}</select></label>
-        <div class="field"><span>แหวน (${MAX_RINGS} วง)</span><div class="ringrow" data-ringrow>${ringSlotsHTML(d.rings)}</div></div>
         <label class="field"><span>ของรัก</span><input data-f="love" value="${esc(d.love)}" maxlength="100" placeholder="เช่น โจม หรือ เสริมเสียหาย 4"></label>
-        <label class="field"><span>เซ็ตไอเทม (สูงสุด 3 คั่นด้วย , )</span><input data-f="sets" value="${esc(d.sets.join(", "))}"></label>
+        ${gearFieldsHTML(d)}
       </div>
-      <div class="ringpick" data-ringpick hidden></div>
+      <div class="ringpick" data-gearpick hidden></div>
       <div class="sgrid">${STATS.map(([key, label, unit]) =>
         `<label class="field"><span>${label}${unit ? " (" + unit + ")" : ""}</span><input data-s="${key}" type="number" min="0" step="any" value="${d.stats[key] ?? ""}"></label>`).join("")}</div>
       <label class="field"><span>รายละเอียด</span><textarea data-f="detail" maxlength="1000" placeholder="เช่น โจมน้อยกว่าตุ้ม ใส่แหวนบอส">${esc(d.detail)}</textarea></label>
@@ -831,12 +834,10 @@ function bossHeroFieldsHTML(id, d){
 }
 const blankBossHero = () => ({speed: null, rings: [], love: "", sets: [], stats: {}, detail: ""});
 function readBossHero(el){
-  const name = char(el.dataset.hero).name, f = k => el.querySelector(`[data-f="${k}"]`).value;
-  const sets = splitList(f("sets"));
-  if(sets.length > 3) throw new Error(`${name}: เซ็ตไอเทมใส่ได้ไม่เกิน 3`);
+  const f = k => el.querySelector(`[data-f="${k}"]`).value;
   const stats = {};
   for(const input of el.querySelectorAll("[data-s]")) if(input.value !== "") stats[input.dataset.s] = Number(input.value);
-  return [el.dataset.hero, {speed: f("speed") ? Number(f("speed")) : null, rings: JSON.parse(el.dataset.rings), love: f("love").trim(), sets, stats, detail: f("detail").trim()}];
+  return [el.dataset.hero, {speed: f("speed") ? Number(f("speed")) : null, rings: gearIds(el, "ring"), love: f("love").trim(), sets: gearIds(el, "set"), stats, detail: f("detail").trim()}];
 }
 function renderLoopEditor(){
   const d = state.draft, ids = placed(d);
@@ -1019,8 +1020,8 @@ $("#sheet").addEventListener("click", e => {
   if(!b) return;
   const d = b.dataset, i = d.i === undefined ? null : Number(d.i);
   if(d.skill){ const [hero, s] = d.skill.split("|"); return toggleSkill(hero, s); }
-  if(d.ringSlot) return openRingPicker(b.closest("[data-hero]"), +d.ringSlot);
-  if(d.ringPick !== undefined) return pickRing(b.closest("[data-hero]"), d.ringPick);
+  if(d.gearSlot){ const [kind, slot] = d.gearSlot.split(":"); return openGearPicker(b.closest("[data-hero]"), kind, Number(slot)); }
+  if(d.gearPick !== undefined) return pickGear(b.closest("[data-hero]"), d.gearPick);
   if(d.slot){ state.active = state.active === d.slot ? null : d.slot; state.pickQ = ""; renderLineup(); if(state.active) $("#pickQ").focus(); return; }
   if(d.pick !== undefined) return pick(d.pick);
   if(d.pickClose !== undefined){ state.active = null; return renderLineup(); }

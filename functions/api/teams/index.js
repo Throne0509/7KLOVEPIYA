@@ -1,12 +1,12 @@
 import { handle, json, requireAdmin, readBody } from "../../../lib/http.js";
 import { normalizeTeam, rowToTeam } from "../../../lib/team.js";
-import { characterKinds } from "../../../lib/characters.js";
+import { characterKinds, libraryIndex } from "../../../lib/characters.js";
 
 // GET /api/teams — everyone
 export const onRequestGet = handle(async ({ env }) => {
   const { results } = await env.DB.prepare("SELECT * FROM teams ORDER BY created_at DESC").all();
-  const kinds = await characterKinds(env.DB);
-  return json(results.map((r) => rowToTeam(r, kinds)));
+  const index = await libraryIndex(env.DB);
+  return json(results.map((r) => rowToTeam(r, index)));
 });
 
 // POST /api/teams — admin
