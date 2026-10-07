@@ -29,7 +29,7 @@ export const onRequestDelete = handle(async ({ request, env, params }) => {
     "SELECT (SELECT COUNT(*) FROM teams WHERE instr(data, ?1) > 0) AS teams, (SELECT COUNT(*) FROM bosses WHERE instr(data, ?1) > 0) AS bosses"
   ).bind(ref).first();
   if (used.teams + used.bosses > 0) {
-    const where = [used.teams && `ทีมกิลวอร์ ${used.teams} ทีม`, used.bosses && `บอส ${used.bosses} ตัว`].filter(Boolean).join(" และ ");
+    const where = [used.teams && `ทีมกิลวอร์ ${used.teams} ทีม`, used.bosses && `บอส/ปราสาท ${used.bosses} รายการ`].filter(Boolean).join(" และ ");
     throw new HttpError(409, `ตัวละครนี้ถูกใช้อยู่ใน${where} เอาออกก่อนจึงจะลบได้`);
   }
   const [del] = await env.DB.batch([

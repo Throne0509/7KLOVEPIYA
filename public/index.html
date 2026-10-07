@@ -79,13 +79,7 @@ button.skill{cursor:pointer}button.skill:hover{border-color:var(--rose)}
 .mini .lbl{font-size:11px;color:var(--muted)}
 .faces{display:flex;gap:6px;flex-wrap:wrap}
 .room{display:grid;gap:12px;min-width:0}
-.brows{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.brow{display:grid;grid-template-columns:76px minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);font-size:13px;line-height:1.55}
-.brow:first-child{border-top:0}
-.brow.bhd{font-size:11px;color:var(--muted);padding-block:8px;background:var(--bg)}
-.brow .who{display:flex;justify-content:center}
-.brow .span3{grid-column:2 / -1}
-.ml{display:none}
+.pop{z-index:15}
 .search{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:10px 16px}
 .search input{border:0;background:none;flex:1;min-width:0;font:inherit;color:var(--ink);outline:none}
 .filters{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-block:14px 18px}
@@ -213,11 +207,6 @@ details.hed .inner{padding:0 12px 12px;display:grid;gap:10px}
 .preview{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .preview .face{width:84px;height:90px;font-size:28px}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:13px;z-index:20}
-@media (max-width:640px){
-  .brow{grid-template-columns:64px minmax(0,1fr);gap:4px 12px;align-items:start}
-  .brow>:not(.who){grid-column:2}.brow .who{grid-row:1 / span 3}.brow.pet .who{grid-row:auto}
-  .brow.bhd{display:none}.ml{display:block;font-size:11px;color:var(--muted)}
-}
 @media (max-width:480px){
   .petcol{--t:44px;padding:10px 6px}
   .bar small{display:none}.bar h1{flex:1}
@@ -231,7 +220,7 @@ details.hed .inner{padding:0 12px 12px;display:grid;gap:10px}
   <button class="btn" id="library" hidden>คลังตัวละคร</button>
   <button class="btn" id="login">แอดมิน</button>
   <button class="btn primary" id="add" hidden>+ เพิ่มทีม</button></div>
-  <nav class="wrap navtabs" aria-label="หมวด"><button data-tab="war" aria-pressed="true">กิลวอร์</button><button data-tab="boss" aria-pressed="false">ตีบอส</button></nav></header>
+  <nav class="wrap navtabs" aria-label="หมวด"><button data-tab="war" aria-pressed="true">กิลวอร์</button><button data-tab="boss" aria-pressed="false">ตีบอส</button><button data-tab="castle" aria-pressed="false">ปราสาท</button></nav></header>
 <main class="wrap">
  <section id="warView">
   <label class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -244,6 +233,7 @@ details.hed .inner{padding:0 12px 12px;display:grid;gap:10px}
  </section>
 </main>
 <div class="sheet" id="sheet" hidden></div>
+<div class="sheet pop" id="pop" hidden></div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -256,6 +246,8 @@ const MAX_SKILLS = 3, MAX_RINGS = 2;
 // must match lib/boss.js
 const BOSS_ROOMS = 2, BOSS_MAX_HEROES = 5, MAX_LOOP = 40;
 const ROOM_LABEL = ["ห้องแรก · ทีม 1", "ห้องสอง · ทีม 2"];
+// Boss and castle guides share one data shape; `mode` says which tab lists them.
+const MODE_LABEL = {boss: "บอส", castle: "ปราสาท"};
 const SKILL_LABEL = {top: "สกิลบน", bottom: "สกิลล่าง"};
 const KIND_LABEL = {hero: "ฮีโร่", pet: "สัตว์เลี้ยง", ring: "แหวน"};
 const STATS = [ // [key, label, unit]
@@ -724,12 +716,13 @@ const loopHTML = loop => loop.length ? `<div class="loop">${loop.map((k, i) => s
 
 function renderBosses(){
   const grid = $("#bossGrid");
-  if(state.bosses === null) return;
-  if(!state.bosses.length){
-    grid.innerHTML = `<p class="empty">ยังไม่มีบอส${state.canWrite ? "<br>กด “+ เพิ่มบอส” ด้านบนเพื่อเพิ่มบอสแรก" : ""}</p>`;
+  if(state.bosses === null || !MODE_LABEL[state.tab]) return;
+  const label = MODE_LABEL[state.tab], list = state.bosses.filter(b => b.mode === state.tab);
+  if(!list.length){
+    grid.innerHTML = `<p class="empty">ยังไม่มี${label}${state.canWrite ? `<br>กด “+ เพิ่ม${label}” ด้านบนเพื่อเพิ่ม${label}แรก` : ""}</p>`;
     return;
   }
-  grid.innerHTML = state.bosses.map(b => `
+  grid.innerHTML = list.map(b => `
     <article class="card">
       <div class="bhead">${bossFaceHTML(b)}<div class="bt"><h3>${esc(b.name)}</h3>${b.note ? `<p class="note">${esc(b.note)}</p>` : ""}</div></div>
       ${b.rooms.map((t, r) => `<div class="mini"><span class="lbl">${ROOM_LABEL[r]}</span>${t
@@ -743,54 +736,72 @@ function roomHTML(b, t, r){
   const head = `<div class="sec"><h3>${ROOM_LABEL[r]}</h3>${state.canWrite
     ? `<button class="btn${t ? "" : " primary"}" data-edit-room="${esc(b.id)}" data-i="${r}">${t ? "แก้ไขทีม" : "+ จัดทีม"}</button>` : ""}</div>`;
   if(!t) return head + `<p class="empty">ยังไม่จัดทีม</p>`;
-  const cell = (label, html) => `<div><span class="ml">${label}</span>${html}</div>`;
   return head + `<div class="room">
     ${boardHTML(t, {ally: true, badges: bossSpeeds(t)})}
-    <div class="brows">
-      <div class="brow bhd"><span>ตัวละคร</span><span>สเตต</span><span>แหวน</span><span>ของรัก / หมายเหตุ</span></div>
-      ${speedOrder(t).map(id => { const h = t.heroes[id]; return `<div class="brow">
-        <div class="who">${tileHTML(id, {badge: h.speed})}</div>
-        ${cell("สเตต", h.stats ? esc(h.stats) : dash)}${cell("แหวน", ringsHTML(h.rings))}${cell("ของรัก / หมายเหตุ", h.love ? esc(h.love) : dash)}
-      </div>`; }).join("")}
-      <div class="brow pet"><div class="who">${tileHTML(t.pet)}</div><div class="span3"><span class="ml">หมายเหตุสัตว์เลี้ยง</span>${t.petNote ? esc(t.petNote) : dash}</div></div>
-    </div>
+    <div class="actions"><button class="btn" data-open-stats="${esc(b.id)}" data-i="${r}">สเตตตัวละคร ›</button></div>
     <div><div class="glabel">ลูปสกิล</div>${loopHTML(t.loop)}</div>
     ${t.note ? `<div class="advice"><b>คำแนะนำทีม</b><p>${esc(t.note)}</p></div>` : ""}
   </div>`;
 }
+function bossHeroCardHTML(id, h){
+  const c = char(id);
+  return `<div class="hcard">
+    <div class="who">${tileHTML(id, {badge: h.speed})}<span class="tyl ty-${c.type}">${c.type}</span></div>
+    <div class="hbody">
+      <div class="gear">
+        <div><div class="glabel">แหวน</div>${ringsHTML(h.rings)}</div>
+        <div><div class="glabel">เซ็ตไอเทม</div>${pills(h.sets, "set")}</div>
+        <div><div class="glabel">ของรัก</div>${h.love ? esc(h.love) : dash}</div>
+      </div>
+      ${statsHTML(h.stats)}
+      ${h.detail ? `<p class="hdetail">${esc(h.detail)}</p>` : ""}
+    </div>
+  </div>`;
+}
+function openStats(id, r){
+  const b = bossById(id), t = b.rooms[r];
+  showPop(`<div class="panel wide" role="dialog" aria-modal="true" aria-labelledby="pph">
+    <div class="panel-head"><h2 id="pph">สเตตตัวละคร · ${esc(b.name)} · ${ROOM_LABEL[r]}</h2><button class="x" data-close aria-label="ปิด">✕</button></div>
+    <div class="hcards">${speedOrder(t).map(h => bossHeroCardHTML(h, t.heroes[h])).join("")}</div>
+  </div>`);
+}
+function showPop(html){ const p = $("#pop"); p.innerHTML = html; p.hidden = false; p.scrollTop = 0; p.querySelector("[data-close]").focus(); }
+function closePop(){ $("#pop").hidden = true; $("#pop").innerHTML = ""; }
+
 function openBoss(id){
   const b = bossById(id);
   showPanel(`<div class="panel wide" role="dialog" aria-modal="true" aria-labelledby="ph">
     <div class="panel-head"><h2 id="ph">${esc(b.name)}</h2><button class="x" data-close aria-label="ปิด">✕</button></div>
     <div class="bhead big">${bossFaceHTML(b)}${b.note ? `<div class="advice"><b>คำแนะนำ</b><p>${esc(b.note)}</p></div>` : ""}</div>
-    ${state.canWrite ? `<div class="actions"><button class="btn" data-edit-boss="${esc(b.id)}">แก้ไขบอส</button></div>` : ""}
+    ${state.canWrite ? `<div class="actions"><button class="btn" data-edit-boss="${esc(b.id)}">แก้ไข${MODE_LABEL[b.mode]}</button></div>` : ""}
     ${b.rooms.map((t, r) => roomHTML(b, t, r)).join("")}
   </div>`);
 }
 
 function openBossEditor(id){
-  const b = id ? bossById(id) : {name: "", note: "", img: null};
+  const b = id ? bossById(id) : {mode: state.tab, name: "", note: "", img: null};
+  const label = MODE_LABEL[b.mode];
   state.bossImage = undefined;
   showPanel(`<form class="panel" id="bossForm" data-id="${id ? esc(id) : ""}" role="dialog" aria-modal="true" aria-labelledby="ph">
-    <div class="panel-head">${id ? `<button type="button" class="backbtn" data-open-boss="${esc(id)}">‹ กลับ</button>` : ""}<h2 id="ph">${id ? "แก้ไขบอส" : "เพิ่มบอส"}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
+    <div class="panel-head">${id ? `<button type="button" class="backbtn" data-open-boss="${esc(id)}">‹ กลับ</button>` : ""}<h2 id="ph">${id ? "แก้ไข" : "เพิ่ม"}${label}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
     <div class="fset">
       <div class="preview"><div id="bossPreview">${bossFaceHTML(b)}</div>
-        <label class="field" style="flex:1;min-width:180px"><span>รูปบอส (JPG, PNG หรือ WebP ระบบย่อให้อัตโนมัติ)</span><input id="bossFile" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
-      <label class="field"><span>ชื่อบอส</span><input id="bossName" value="${esc(b.name)}" maxlength="60" required></label>
+        <label class="field" style="flex:1;min-width:180px"><span>รูป${label} (JPG, PNG หรือ WebP ระบบย่อให้อัตโนมัติ)</span><input id="bossFile" type="file" accept="image/png,image/jpeg,image/webp"></label></div>
+      <label class="field"><span>ชื่อ${label}</span><input id="bossName" value="${esc(b.name)}" maxlength="60" required></label>
       <label class="field"><span>คำแนะนำ</span><textarea id="bossNote" maxlength="1000" placeholder="เช่น ทีมที่ความเร็วโจมตีสูงสุดจะได้เทิร์นสกิลแรก">${esc(b.note)}</textarea></label>
     </div>
     <p class="hint">ทีมของแต่ละห้องจัดได้หลังบันทึก</p>
     <p class="err" id="formErr" hidden></p>
     <div class="actions">
-      ${id ? `<button type="button" class="btn danger" id="delBoss">ลบบอสนี้</button>` : ""}
+      ${id ? `<button type="button" class="btn danger" id="delBoss">ลบ${label}นี้</button>` : ""}
       <button type="submit" class="btn primary" id="save">บันทึก</button>
     </div>
   </form>`);
 }
 async function saveBoss(form){
   const id = form.dataset.id;
-  const body = {...(id ? stripBoss(bossById(id)) : {rooms: Array(BOSS_ROOMS).fill(null)}), name: $("#bossName").value.trim(), note: $("#bossNote").value.trim()};
-  if(!body.name) throw new Error("กรุณาใส่ชื่อบอส");
+  const body = {...(id ? stripBoss(bossById(id)) : {mode: state.tab, rooms: Array(BOSS_ROOMS).fill(null)}), name: $("#bossName").value.trim(), note: $("#bossNote").value.trim()};
+  if(!body.name) throw new Error(`กรุณาใส่ชื่อ${MODE_LABEL[body.mode]}`);
   if(state.bossImage) body.image = {type: state.bossImage.type, data: state.bossImage.data};
   const saved = await api(id ? "PUT" : "POST", id ? bossUrl(id) : "/api/bosses", body);
   await loadAll(); toast("บันทึกแล้ว"); openBoss(id || saved.id);
@@ -805,17 +816,24 @@ function bossHeroFieldsHTML(id, d){
       <div class="fgrid">
         <label class="field"><span>ลำดับ speed</span><select data-f="speed"><option value="">ไม่ระบุ</option>${Array.from({length: BOSS_MAX_HEROES}, (_, k) => k + 1).map(k => `<option${k === d.speed ? " selected" : ""}>${k}</option>`).join("")}</select></label>
         <div class="field"><span>แหวน (${MAX_RINGS} วง)</span><div class="ringrow" data-ringrow>${ringSlotsHTML(d.rings)}</div></div>
-        <label class="field"><span>ของรัก / หมายเหตุ</span><input data-f="love" value="${esc(d.love)}" maxlength="100" placeholder="เช่น โจม หรือ เสริมเสียหาย 4"></label>
+        <label class="field"><span>ของรัก</span><input data-f="love" value="${esc(d.love)}" maxlength="100" placeholder="เช่น โจม หรือ เสริมเสียหาย 4"></label>
+        <label class="field"><span>เซ็ตไอเทม (สูงสุด 3 คั่นด้วย , )</span><input data-f="sets" value="${esc(d.sets.join(", "))}"></label>
       </div>
       <div class="ringpick" data-ringpick hidden></div>
-      <label class="field"><span>สเตต</span><textarea data-f="stats" maxlength="300" placeholder="เช่น สปีด 33+ โจมน้อยกว่าตุ้ม คริ 100 คริแดม 220+">${esc(d.stats)}</textarea></label>
+      <div class="sgrid">${STATS.map(([key, label, unit]) =>
+        `<label class="field"><span>${label}${unit ? " (" + unit + ")" : ""}</span><input data-s="${key}" type="number" min="0" step="any" value="${d.stats[key] ?? ""}"></label>`).join("")}</div>
+      <label class="field"><span>รายละเอียด</span><textarea data-f="detail" maxlength="1000" placeholder="เช่น โจมน้อยกว่าตุ้ม ใส่แหวนบอส">${esc(d.detail)}</textarea></label>
     </div>
   </details>`;
 }
-const blankBossHero = () => ({speed: null, rings: [], love: "", stats: ""});
+const blankBossHero = () => ({speed: null, rings: [], love: "", sets: [], stats: {}, detail: ""});
 function readBossHero(el){
-  const f = k => el.querySelector(`[data-f="${k}"]`).value;
-  return [el.dataset.hero, {speed: f("speed") ? Number(f("speed")) : null, rings: JSON.parse(el.dataset.rings), love: f("love").trim(), stats: f("stats").trim()}];
+  const name = char(el.dataset.hero).name, f = k => el.querySelector(`[data-f="${k}"]`).value;
+  const sets = splitList(f("sets"));
+  if(sets.length > 3) throw new Error(`${name}: เซ็ตไอเทมใส่ได้ไม่เกิน 3`);
+  const stats = {};
+  for(const input of el.querySelectorAll("[data-s]")) if(input.value !== "") stats[input.dataset.s] = Number(input.value);
+  return [el.dataset.hero, {speed: f("speed") ? Number(f("speed")) : null, rings: JSON.parse(el.dataset.rings), love: f("love").trim(), sets, stats, detail: f("detail").trim()}];
 }
 function renderLoopEditor(){
   const d = state.draft, ids = placed(d);
@@ -836,7 +854,7 @@ function loopAdd(hero, sl){
   renderLoopEditor();
 }
 function openRoomEditor(id, r){
-  const b = bossById(id), t = b.rooms[r] || {...emptyLineup(), heroes: {}, petNote: "", loop: [], note: ""};
+  const b = bossById(id), t = b.rooms[r] || {...emptyLineup(), heroes: {}, loop: [], note: ""};
   startLineup(t, BOSS_TEAM);
   state.draft.loop = t.loop.map(k => ({...k}));
   state.heroSection = {html: bossHeroFieldsHTML, blank: blankBossHero, read: readBossHero};
@@ -844,7 +862,6 @@ function openRoomEditor(id, r){
   showPanel(`<form class="panel wide" id="roomForm" data-id="${esc(id)}" data-i="${r}" role="dialog" aria-modal="true" aria-labelledby="ph">
     <div class="panel-head"><button type="button" class="backbtn" data-open-boss="${esc(id)}">‹ กลับ</button><h2 id="ph">${esc(b.name)} · ${ROOM_LABEL[r]}</h2><button type="button" class="x" data-close aria-label="ปิด">✕</button></div>
     ${lineupEditorHTML(BOSS_TEAM)}
-    <label class="field"><span>หมายเหตุสัตว์เลี้ยง</span><input id="r-petNote" value="${esc(t.petNote)}" maxlength="200" placeholder="เช่น ศักย์โจมรวมกัน 53 + อัพสกิล"></label>
     <div class="sec"><h3>รายละเอียดตัวละคร <small>เว้นว่างช่องที่ไม่รู้ได้</small></h3></div>
     <div id="heroFields" class="hcards"></div>
     <div class="sec"><h3>ลูปสกิล <small id="loopCount"></small></h3><button type="button" class="btn" data-loop-clear>ล้างลูป</button></div>
@@ -869,7 +886,7 @@ async function saveRoom(form){
   const speeds = Object.values(heroes).map(h => h.speed).filter(n => n !== null);
   if(new Set(speeds).size !== speeds.length) throw new Error("ลำดับ speed ซ้ำกัน แต่ละตัวต้องได้เลขไม่ซ้ำ");
   if(speeds.some(n => n > placed(state.draft).length)) throw new Error(`ทีมนี้มี ${placed(state.draft).length} ตัว ลำดับ speed ใช้ได้ถึง ${placed(state.draft).length}`);
-  const team = {...lineupFromDraft(), heroes, petNote: $("#r-petNote").value.trim(), loop: state.draft.loop, note: $("#r-note").value.trim()};
+  const team = {...lineupFromDraft(), heroes, loop: state.draft.loop, note: $("#r-note").value.trim()};
   const rooms = [...b.rooms]; rooms[r] = team;
   await api("PUT", bossUrl(b.id), {...stripBoss(b), rooms});
   await loadAll(); toast("บันทึกทีมแล้ว"); openBoss(b.id);
@@ -892,9 +909,10 @@ async function deleteTarget(id, btn){
   await loadAll(); closeSheet(); toast("ลบทีมแล้ว");
 }
 async function deleteBoss(id, btn){
-  if(!confirmTap(btn, "กดอีกครั้ง: ลบบอสและทีมทั้งหมด")) return;
+  const label = MODE_LABEL[bossById(id).mode];
+  if(!confirmTap(btn, `กดอีกครั้ง: ลบ${label}และทีมทั้งหมด`)) return;
   await api("DELETE", bossUrl(id));
-  await loadAll(); closeSheet(); toast("ลบบอสแล้ว");
+  await loadAll(); closeSheet(); toast(`ลบ${label}แล้ว`);
 }
 async function clearRoom(id, r, btn){
   if(!confirmTap(btn, "กดอีกครั้งเพื่อยืนยัน")) return;
@@ -932,13 +950,15 @@ async function loadAll(){
   }
 }
 
-// ---------- tabs (#boss in the address opens the boss tab)
+// ---------- tabs
+// war | boss | castle; #boss or #castle in the address opens that tab
 function setTab(tab){
   state.tab = tab;
-  $("#warView").hidden = tab !== "war"; $("#bossView").hidden = tab !== "boss";
+  $("#warView").hidden = tab !== "war"; $("#bossView").hidden = tab === "war";
   for(const b of document.querySelectorAll("[data-tab]")) b.setAttribute("aria-pressed", b.dataset.tab === tab);
-  $("#add").textContent = tab === "war" ? "+ เพิ่มทีม" : "+ เพิ่มบอส";
-  history.replaceState(null, "", tab === "boss" ? "#boss" : location.pathname);
+  $("#add").textContent = tab === "war" ? "+ เพิ่มทีม" : `+ เพิ่ม${MODE_LABEL[tab]}`;
+  history.replaceState(null, "", tab === "war" ? location.pathname : "#" + tab);
+  renderBosses();
 }
 
 // ---------- admin
@@ -1010,6 +1030,7 @@ $("#sheet").addEventListener("click", e => {
   if(d.openBoss) return openBoss(d.openBoss);
   if(d.editBoss) return openBossEditor(d.editBoss);
   if(d.editRoom) return openRoomEditor(d.editRoom, i);
+  if(d.openStats) return openStats(d.openStats, i);
   if(d.loopAdd){ const [hero, sl] = d.loopAdd.split("|"); return loopAdd(hero, sl); }
   if(d.loopDel !== undefined){ state.draft.loop.splice(Number(d.loopDel), 1); $("#loopErr").hidden = true; return renderLoopEditor(); }
   if(d.loopClear !== undefined){ state.draft.loop = []; return renderLoopEditor(); }
@@ -1052,11 +1073,18 @@ $("#sheet").addEventListener("submit", e => {
   if(!action) throw new Error("ไม่รู้จักฟอร์ม " + f.id);
   run($("#save"), action);
 });
-document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("#sheet").hidden) closeSheet(); });
+$("#pop").addEventListener("click", e => { if(e.target.id === "pop" || e.target.closest("[data-close]")) closePop(); });
+document.addEventListener("keydown", e => {
+  if(e.key !== "Escape") return;
+  if(!$("#pop").hidden) return closePop();
+  if(!$("#sheet").hidden) closeSheet();
+});
 
 let savedPw = null;
 try { savedPw = sessionStorage.getItem(PW_KEY); } catch {}
-setTab(location.hash === "#boss" ? "boss" : "war");
+const tabFromHash = () => MODE_LABEL[location.hash.slice(1)] ? location.hash.slice(1) : "war";
+window.addEventListener("hashchange", () => setTab(tabFromHash()));
+setTab(tabFromHash());
 setAdmin(savedPw);
 loadAll();
 </script>
